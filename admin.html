@@ -22,6 +22,7 @@ body {
 button {
   padding:8px 12px;
   margin-top:5px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -39,20 +40,33 @@ button {
 
 <script>
 
-const supabase = window.supabase.createClient(
+// 🔥 CONNECT SUPABASE
+const { createClient } = supabase;
+
+const client = createClient(
   "https://jkgkswsiunpzwnurqvjq.supabase.co",
   "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
 );
 
 // LOAD USERS
-async function loadUsers() {
-  const { data } = await supabase
+async function loadUsers(){
+
+  console.log("Loading users...");
+
+  const { data, error } = await client
     .from("users")
     .select("*")
     .eq("status", "pending");
 
+  console.log(data, error);
+
   const container = document.getElementById("users");
   container.innerHTML = "";
+
+  if(!data || data.length === 0){
+    container.innerHTML = "<p>No pending users</p>";
+    return;
+  }
 
   data.forEach(user => {
     container.innerHTML += `
@@ -65,16 +79,19 @@ async function loadUsers() {
 }
 
 // APPROVE USER
-async function approve(id_no) {
-  await supabase
+async function approve(id){
+
+  await client
     .from("users")
     .update({ status: "approved" })
-    .eq("id_no", id_no);
+    .eq("id_no", id);
 
   alert("User Approved");
+
   loadUsers();
 }
 
+// LOAD ON START
 loadUsers();
 
 </script>
