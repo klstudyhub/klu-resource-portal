@@ -1,13 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>KLU Portal</title>
+<title>KLU Resource Portal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <style>
-body {background:#0B0F1A;color:white;font-family:Arial;text-align:center;padding-top:80px;}
-.card {width:350px;margin:auto;padding:20px;background:rgba(255,255,255,0.05);border-radius:10px;}
-input,select,button{width:90%;padding:10px;margin-top:10px;}
-.hidden{display:none;}
-.terms{height:120px;overflow:auto;font-size:12px;}
+body {
+  background:#0B0F1A;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  padding-top:80px;
+}
+
+.card {
+  width:350px;
+  margin:auto;
+  padding:20px;
+  background:rgba(255,255,255,0.05);
+  border-radius:10px;
+}
+
+input,select,button {
+  width:90%;
+  padding:10px;
+  margin-top:10px;
+}
+
+.hidden {
+  display:none;
+}
+
+.terms {
+  height:120px;
+  overflow:auto;
+  font-size:12px;
+}
 </style>
 </head>
 
@@ -15,16 +44,24 @@ input,select,button{width:90%;padding:10px;margin-top:10px;}
 
 <div class="card">
 
+<!-- LOGIN -->
 <div id="loginBox">
 <h3>Login</h3>
+
 <input id="id" placeholder="Student ID">
 <input id="pass" type="password" placeholder="Password">
+
 <button onclick="login()">Login</button>
-<p><a onclick="openSignup()">Signup</a></p>
+
+<p>
+<span onclick="openSignup()" style="color:cyan;cursor:pointer;">Signup</span>
+</p>
 </div>
 
+<!-- TERMS -->
 <div id="signupBox" class="hidden">
 <h3>Terms & Privacy</h3>
+
 <div class="terms">
 Registration is restricted to valid KLU college IDs only (e.g., 25000XXXXX).<br><br>
 This platform is for educational use only.<br>
@@ -32,14 +69,20 @@ Unauthorized users are not allowed.<br><br>
 For queries: yourgmail@gmail.com
 </div>
 
-<label><input type="checkbox" id="agree"> I Agree</label>
+<label>
+<input type="checkbox" id="agree"> I Agree
+</label>
+
 <button onclick="next()">Continue</button>
 </div>
 
+<!-- SIGNUP -->
 <div id="formBox" class="hidden">
 <h3>Signup</h3>
+
 <input id="sid" placeholder="Student ID">
 <input id="spass" type="password" placeholder="Password">
+
 <select id="branch">
 <option>CSE</option>
 <option>ECE</option>
@@ -47,45 +90,86 @@ For queries: yourgmail@gmail.com
 <option>AIDS</option>
 <option>CSIT</option>
 </select>
-<button onclick="signup()">Create</button>
+
+<button onclick="signup()">Create Account</button>
 </div>
 
 </div>
 
 <script>
 
+// 🔥 SUPABASE CONNECTION
+const { createClient } = supabase;
+
+const client = createClient(
+  "https://jkgkswsiunpzwnurqvjq.supabase.co",
+  "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
+);
+
+// OPEN SIGNUP
 function openSignup(){
-loginBox.classList.add("hidden");
-signupBox.classList.remove("hidden");
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("signupBox").classList.remove("hidden");
 }
 
+// TERMS CHECK
 function next(){
-if(!agree.checked){alert("Agree first");return;}
-signupBox.classList.add("hidden");
-formBox.classList.remove("hidden");
+  if(!document.getElementById("agree").checked){
+    alert("You must agree first");
+    return;
+  }
+  document.getElementById("signupBox").classList.add("hidden");
+  document.getElementById("formBox").classList.remove("hidden");
 }
 
+// SIGNUP
 async function signup(){
-await fetch("https://your-app.onrender.com/signup",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id_no:sid.value,password:spass.value,branch:branch.value})
-});
-alert("Wait for approval");
-location.reload();
+
+  console.log("Signup clicked");
+
+  await client.from("users").insert([{
+    id_no: document.getElementById("sid").value,
+    password: document.getElementById("spass").value,
+    branch: document.getElementById("branch").value,
+    status: "pending",
+    role: "user"
+  }]);
+
+  alert("Signup done. Wait for admin approval");
+  location.reload();
 }
 
+// LOGIN
 async function login(){
-let res=await fetch("https://your-app.onrender.com/login",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id_no:id.value,password:pass.value})
-});
-let data=await res.json();
-localStorage.setItem("user",JSON.stringify(data));
 
-if(data.role==="admin") window.location="admin.html";
-else window.location="dashboard.html";
+  console.log("Login clicked");
+
+  const { data, error } = await client
+    .from("users")
+    .select("*")
+    .eq("id_no", document.getElementById("id").value)
+    .eq("password", document.getElementById("pass").value)
+    .single();
+
+  console.log(data, error);
+
+  if(!data){
+    alert("Invalid login");
+    return;
+  }
+
+  if(data.status !== "approved"){
+    alert("Not approved yet");
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify(data));
+
+  if(data.role === "admin"){
+    window.location = "admin.html";
+  } else {
+    window.location = "dashboard.html";
+  }
 }
 
 </script>
