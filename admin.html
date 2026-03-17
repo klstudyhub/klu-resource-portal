@@ -1,40 +1,82 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#0B0F1A;color:white;text-align:center;">
+<head>
+<title>Admin Panel</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+body {
+  background:#0B0F1A;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+.container {
+  width:500px;
+  margin:auto;
+  margin-top:50px;
+}
+
+button {
+  padding:8px 12px;
+  margin-top:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
 
 <h2>Admin Panel</h2>
 
-<h3>Approve User</h3>
-<input id="aid">
-<button onclick="approve()">Approve</button>
+<h3>Pending Users</h3>
+<div id="users"></div>
 
-<h3>Add Resource</h3>
-<select id="branch">
-<option>CSE</option>
-<option>ECE</option>
-</select>
-<input id="title">
-<input id="link">
-<button onclick="add()">Add</button>
+</div>
 
 <script>
-async function approve(){
-await fetch("https://your-app.onrender.com/approve",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id_no:aid.value})
-});
-alert("Approved");
+
+const supabase = window.supabase.createClient(
+  "https://jkgkswsiunpzwnurqvjq.supabase.co",
+  "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
+);
+
+// LOAD USERS
+async function loadUsers() {
+  const { data } = await supabase
+    .from("users")
+    .select("*")
+    .eq("status", "pending");
+
+  const container = document.getElementById("users");
+  container.innerHTML = "";
+
+  data.forEach(user => {
+    container.innerHTML += `
+      <p>
+        ${user.id_no} (${user.branch})
+        <button onclick="approve('${user.id_no}')">Approve</button>
+      </p>
+    `;
+  });
 }
 
-async function add(){
-await fetch("https://your-app.onrender.com/add-resource",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({branch:branch.value,title:title.value,link:link.value})
-});
-alert("Added");
+// APPROVE USER
+async function approve(id_no) {
+  await supabase
+    .from("users")
+    .update({ status: "approved" })
+    .eq("id_no", id_no);
+
+  alert("User Approved");
+  loadUsers();
 }
+
+loadUsers();
+
 </script>
 
 </body>
