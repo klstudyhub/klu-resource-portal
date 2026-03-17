@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0B0F1A;color:white;text-align:center;">
+
+<h2>Admin Panel</h2>
+
+<h3>Approve User</h3>
+<input id="aid">
+<button onclick="approve()">Approve</button>
+
+<h3>Add Resource</h3>
+<select id="branch">
+<option>CSE</option>
+<option>ECE</option>
+</select>
+<input id="title">
+<input id="link">
+<button onclick="add()">Add</button>
+
+<script>
+async function approve(){
+await fetch("https://your-app.onrender.com/approve",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id_no:aid.value})
+});
+alert("Approved");
+}
+
+async function add(){
+await fetch("https://your-app.onrender.com/add-resource",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({branch:branch.value,title:title.value,link:link.value})
+});
+alert("Added");
+}
+</script>
+
+</body>
+</html>
