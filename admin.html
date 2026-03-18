@@ -16,13 +16,24 @@ body {
 .container {
   width:500px;
   margin:auto;
-  margin-top:50px;
+  margin-top:30px;
 }
 
-button {
-  padding:8px 12px;
-  margin-top:5px;
-  cursor:pointer;
+input,select,button {
+  padding:10px;
+  margin-top:10px;
+  width:90%;
+}
+
+.list {
+  margin-top:20px;
+}
+
+.item {
+  background:rgba(255,255,255,0.05);
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -33,14 +44,33 @@ button {
 
 <h2>Admin Panel</h2>
 
-<h3>Pending Users</h3>
-<div id="users"></div>
+<!-- ADD -->
+<h3>Add Resource</h3>
+
+<input id="title" placeholder="Title">
+<input id="link" placeholder="Link">
+
+<select id="branch">
+<option>CSE</option>
+<option>ECE</option>
+<option>EEE</option>
+<option>AIDS</option>
+<option>CSIT</option>
+</select>
+
+<button onclick="add()">Upload</button>
+
+<!-- SEARCH -->
+<h3>Search</h3>
+<input id="search" placeholder="Search..." oninput="load()">
+
+<!-- LIST -->
+<div class="list" id="list"></div>
 
 </div>
 
 <script>
 
-// 🔥 CONNECT SUPABASE
 const { createClient } = supabase;
 
 const client = createClient(
@@ -48,51 +78,57 @@ const client = createClient(
   "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
 );
 
-// LOAD USERS
-async function loadUsers(){
+// ADD
+async function add(){
 
-  console.log("Loading users...");
+  await client.from("resources").insert([{
+    title: title.value,
+    link: link.value,
+    branch: branch.value
+  }]);
 
-  const { data, error } = await client
-    .from("users")
-    .select("*")
-    .eq("status", "pending");
+  alert("Uploaded");
+  title.value="";
+  link.value="";
+  load();
+}
 
-  console.log(data, error);
+// DELETE
+async function remove(id){
 
-  const container = document.getElementById("users");
-  container.innerHTML = "";
+  await client.from("resources").delete().eq("id", id);
 
-  if(!data || data.length === 0){
-    container.innerHTML = "<p>No pending users</p>";
-    return;
-  }
+  load();
+}
 
-  data.forEach(user => {
-    container.innerHTML += `
-      <p>
-        ${user.id_no} (${user.branch})
-        <button onclick="approve('${user.id_no}')">Approve</button>
-      </p>
-    `;
+// LOAD
+async function load(){
+
+  const { data } = await client.from("resources").select("*");
+
+  const searchValue = document.getElementById("search").value.toLowerCase();
+
+  const list = document.getElementById("list");
+  list.innerHTML="";
+
+  data.forEach(item => {
+
+    if(item.title.toLowerCase().includes(searchValue)){
+
+      list.innerHTML += `
+        <div class="item">
+          <b>${item.title}</b> (${item.branch})<br>
+          <a href="${item.link}" target="_blank" style="color:cyan">Open</a><br>
+          <button onclick="remove('${item.id}')">Delete</button>
+        </div>
+      `;
+    }
+
   });
+
 }
 
-// APPROVE USER
-async function approve(id){
-
-  await client
-    .from("users")
-    .update({ status: "approved" })
-    .eq("id_no", id);
-
-  alert("User Approved");
-
-  loadUsers();
-}
-
-// LOAD ON START
-loadUsers();
+load();
 
 </script>
 
