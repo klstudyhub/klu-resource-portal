@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard</title>
+<title>KLU Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body {
+body{
   margin:0;
   font-family:Arial;
   background:#0B0F1A;
   color:white;
-  overflow-x:hidden;
+  overflow:hidden;
 }
 
-/* PARTICLE BACKGROUND */
-canvas {
+/* BACKGROUND */
+canvas{
   position:fixed;
   top:0;
   left:0;
@@ -23,94 +23,108 @@ canvas {
 }
 
 /* NAV */
-.nav {
+.nav{
   display:flex;
   justify-content:space-between;
   padding:15px 30px;
   background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
 }
 
-.logo { font-weight:bold; }
-.logout { color:#ff4d4d; cursor:pointer; }
+.logo{font-weight:bold;}
+.logout{color:#ff4d4d;cursor:pointer;}
 
 /* HERO */
-.hero {
+.hero{
   text-align:center;
-  margin-top:40px;
+  margin-top:30px;
 }
 
-.hero h1 {
-  font-size:30px;
+.hero h1{
   animation:glow 2s infinite alternate;
 }
 
-@keyframes glow {
-  from { text-shadow:0 0 10px cyan; }
-  to { text-shadow:0 0 25px cyan; }
+@keyframes glow{
+  from{ text-shadow:0 0 10px cyan;}
+  to{ text-shadow:0 0 30px cyan;}
 }
 
 /* GRID */
-.grid {
+.grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
+  gap:25px;
   padding:30px;
 }
 
-/* GLASS CARD */
-.card {
+/* CARD */
+.card{
   background:rgba(255,255,255,0.05);
   border-radius:15px;
   padding:20px;
-  backdrop-filter:blur(15px);
-  transition:0.3s;
+  cursor:pointer;
+  transition:0.4s;
   position:relative;
   overflow:hidden;
 }
 
-.card:hover {
-  transform:translateY(-8px) scale(1.05);
-  box-shadow:0 0 25px rgba(0,255,255,0.3);
+.card:hover{
+  transform:translateY(-10px) scale(1.05);
+  box-shadow:0 0 30px rgba(0,255,255,0.3);
 }
 
-/* GLOW BORDER */
-.card::before {
+.card.active{
+  border:1px solid cyan;
+}
+
+/* GLOW EFFECT */
+.card::before{
   content:"";
   position:absolute;
-  inset:0;
-  border-radius:15px;
-  padding:1px;
-  background:linear-gradient(45deg,cyan,transparent,cyan);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
+  width:200%;
+  height:200%;
+  background:linear-gradient(45deg,transparent,cyan,transparent);
+  top:-50%;
+  left:-50%;
+  opacity:0;
+  transition:0.5s;
 }
 
-/* LINKS */
-.resources a {
+.card:hover::before{
+  opacity:0.2;
+}
+
+/* RESOURCES */
+.resources{
+  max-height:0;
+  overflow:hidden;
+  transition:0.4s;
+}
+
+.resources.show{
+  max-height:300px;
+  margin-top:10px;
+}
+
+.resources a{
   display:block;
   color:cyan;
   margin-top:6px;
   text-decoration:none;
-  font-size:14px;
 }
 
-.resources a:hover {
+.resources a:hover{
   text-decoration:underline;
 }
 
-/* LOADING */
-.loader {
+/* LOADER */
+.loader{
   text-align:center;
-  margin-top:50px;
-  font-size:18px;
+  margin-top:40px;
   animation:pulse 1s infinite;
 }
 
-@keyframes pulse {
+@keyframes pulse{
   0%{opacity:0.3}
   50%{opacity:1}
   100%{opacity:0.3}
@@ -129,12 +143,12 @@ canvas {
 
 <div class="hero">
   <h1 id="welcome"></h1>
-  <p>Explore resources⚡</p>
+  <p>Access your branch resources</p>
 </div>
 
-<div id="loader" class="loader">Loading resources...</div>
+<div id="loader" class="loader">Loading...</div>
 
-<div class="grid" id="grid" style="display:none;"></div>
+<div id="grid" class="grid" style="display:none;"></div>
 
 <script>
 
@@ -155,7 +169,7 @@ if(!user){
 document.getElementById("welcome").innerText =
   "Welcome " + user.id_no;
 
-// PARTICLE BACKGROUND
+// PARTICLES
 const canvas = document.getElementById("bg");
 const ctx = canvas.getContext("2d");
 
@@ -164,7 +178,7 @@ canvas.height = window.innerHeight;
 
 let particles = [];
 
-for(let i=0;i<80;i++){
+for(let i=0;i<60;i++){
   particles.push({
     x:Math.random()*canvas.width,
     y:Math.random()*canvas.height,
@@ -201,7 +215,23 @@ const grid = document.getElementById("grid");
 branches.forEach(b=>{
   const card = document.createElement("div");
   card.className="card";
-  card.innerHTML = `<h3>${b}</h3><div id="${b}" class="resources"></div>`;
+
+  card.innerHTML = `
+    <h3>${b}</h3>
+    <div class="resources" id="${b}"></div>
+  `;
+
+  card.onclick = function(){
+
+    document.querySelectorAll(".card").forEach(c=>{
+      c.classList.remove("active");
+      c.querySelector(".resources").classList.remove("show");
+    });
+
+    card.classList.add("active");
+    card.querySelector(".resources").classList.toggle("show");
+  };
+
   grid.appendChild(card);
 });
 
