@@ -38,7 +38,12 @@ body{
 
 /* SEARCH */
 .searchBox{text-align:center;margin:20px;}
-input,select{padding:10px;margin:5px;border-radius:6px;border:none;}
+input,select{
+  padding:10px;
+  margin:5px;
+  border-radius:6px;
+  border:none;
+}
 
 /* GRID */
 .grid{
@@ -56,11 +61,15 @@ input,select{padding:10px;margin:5px;border-radius:6px;border:none;}
   cursor:pointer;
   transition:0.3s;
 }
+
 .card:hover{
   transform:translateY(-5px);
   box-shadow:0 0 15px cyan;
 }
-.card.active{border:1px solid cyan;}
+
+.card.active{
+  border:1px solid cyan;
+}
 
 /* RESOURCES */
 .resources{
@@ -68,17 +77,31 @@ input,select{padding:10px;margin:5px;border-radius:6px;border:none;}
   overflow:hidden;
   transition:0.3s;
 }
+
 .resources.show{
   max-height:300px;
   margin-top:10px;
 }
 
-.item{margin-top:8px;}
-button{margin-left:5px;padding:4px 8px;cursor:pointer;}
+/* ITEMS */
+.item{
+  margin-top:8px;
+}
+
+button{
+  margin-left:5px;
+  padding:4px 8px;
+  cursor:pointer;
+}
 
 /* SECTION */
-.section{padding:20px;}
-.section h3{color:cyan;}
+.section{
+  padding:20px;
+}
+
+.section h3{
+  color:cyan;
+}
 
 /* FOOTER */
 .footer{
@@ -93,6 +116,7 @@ button{margin-left:5px;padding:4px 8px;cursor:pointer;}
 
 <body>
 
+<!-- NAV -->
 <div class="nav">
   <div class="logo">
     KL <span style="color:cyan;">STUDY HUB</span>
@@ -105,10 +129,12 @@ button{margin-left:5px;padding:4px 8px;cursor:pointer;}
   </div>
 </div>
 
+<!-- HERO -->
 <div class="hero">
   <h2 id="welcome"></h2>
 </div>
 
+<!-- SEARCH -->
 <div class="searchBox">
   <input id="search" placeholder="Search..." oninput="render()">
   <select id="filter" onchange="render()">
@@ -130,19 +156,13 @@ button{margin-left:5px;padding:4px 8px;cursor:pointer;}
   <div id="recent"></div>
 </div>
 
-<!-- BRANCH GRID -->
+<!-- ✅ BRANCH GRID (MAIN — UNTOUCHED LOGIC) -->
 <div class="grid" id="grid"></div>
 
-<!-- 🔥 RESOURCE FEED -->
+<!-- 🔥 FEED (ADDED BELOW, SAFE) -->
 <div class="section">
   <h3>📚 Explore More Resources</h3>
   <div id="feed"></div>
-</div>
-
-<!-- 📊 STATS -->
-<div class="section">
-  <h3>📊 Dashboard Stats</h3>
-  <p id="stats"></p>
 </div>
 
 <!-- FOOTER -->
@@ -168,92 +188,99 @@ if(!user){
 document.getElementById("welcome").innerText =
 "Welcome " + user.id_no + " (" + user.branch + ")";
 
-let allData=[];
-let favorites=JSON.parse(localStorage.getItem("fav")||"[]");
-let recent=JSON.parse(localStorage.getItem("recent")||"[]");
+let allData = [];
+let favorites = JSON.parse(localStorage.getItem("fav") || "[]");
+let recent = JSON.parse(localStorage.getItem("recent") || "[]");
 
-const branches=["CSE","ECE","EEE","AIDS","CSIT"];
+const branches = ["CSE","ECE","EEE","AIDS","CSIT"];
 
 async function load(){
   const { data } = await client.from("resources").select("*");
-  allData=data;
+  allData = data || [];
   render();
 }
 
 function render(){
 
-  const search=searchBox.value.toLowerCase();
-  const filter=document.getElementById("filter").value;
+  const search = document.getElementById("search").value.toLowerCase();
+  const filter = document.getElementById("filter").value;
 
-  grid.innerHTML="";
-  feed.innerHTML="";
+  const grid = document.getElementById("grid");
+  const feed = document.getElementById("feed");
 
-  branches.forEach(b=>{
+  grid.innerHTML = "";
+  feed.innerHTML = "";
 
-    const list=allData.filter(r=>{
-      return r.branch===b &&
+  // ✅ BRANCH GRID
+  branches.forEach(b => {
+
+    const branchData = allData.filter(r => {
+      return r.branch === b &&
       r.title.toLowerCase().includes(search) &&
-      (filter==="all" ||
-      (filter==="pdf" && r.link.includes(".pdf")) ||
-      (filter==="link" && !r.link.includes(".pdf")));
+      (filter === "all" ||
+       (filter === "pdf" && r.link.includes(".pdf")) ||
+       (filter === "link" && !r.link.includes(".pdf")));
     });
 
-    const card=document.createElement("div");
-    card.className="card";
+    const card = document.createElement("div");
+    card.className = "card";
 
-    card.innerHTML=`<h3>${b} (${list.length})</h3><div class="resources"></div>`;
+    card.innerHTML = `
+      <h3>${b} (${branchData.length})</h3>
+      <div class="resources"></div>
+    `;
 
-    const box=card.querySelector(".resources");
+    const resBox = card.querySelector(".resources");
 
-    if(list.length===0){
-      box.innerHTML="No resources";
-    }else{
-      list.forEach(r=>{
-        box.innerHTML+=createItem(r);
+    if(branchData.length === 0){
+      resBox.innerHTML = "<div>No resources</div>";
+    } else {
+      branchData.forEach(r => {
+        resBox.innerHTML += createItem(r);
       });
     }
 
-    card.onclick=()=>{
-      document.querySelectorAll(".card").forEach(c=>{
+    card.onclick = () => {
+      document.querySelectorAll(".card").forEach(c => {
         c.classList.remove("active");
         c.querySelector(".resources").classList.remove("show");
       });
+
       card.classList.add("active");
-      box.classList.toggle("show");
+      resBox.classList.toggle("show");
     };
 
     grid.appendChild(card);
   });
 
-  // FEED
-  allData.slice(0,10).forEach(r=>{
-    feed.innerHTML+=createItem(r);
+  // 🔥 FEED (ALL DATA)
+  allData.slice(0,10).forEach(r => {
+    feed.innerHTML += createItem(r);
   });
 
   renderFav();
   renderRecent();
-
-  stats.innerText =
-  "Total Resources: "+allData.length+
-  " | Favorites: "+favorites.length+
-  " | Viewed: "+recent.length;
 }
 
 function createItem(r){
   return `
-  <div class="item">
-    ${r.link.includes(".pdf")?"📄":"🔗"} ${r.title}
-    <button onclick="openRes('${r.link}')">Open</button>
-    <button onclick="copyLink('${r.link}')">Copy</button>
-    <button onclick="fav('${r.link}','${r.title}')">⭐</button>
-  </div>`;
+    <div class="item">
+      ${r.link.includes(".pdf") ? "📄" : "🔗"} ${r.title}
+      <button onclick="openRes('${r.link}')">Open</button>
+      <button onclick="copyLink('${r.link}')">Copy</button>
+      <button onclick="fav('${r.link}','${r.title}')">⭐</button>
+    </div>
+  `;
 }
 
 function openRes(link){
-  window.open(link,"_blank");
+  window.open(link, "_blank");
+
   recent.unshift(link);
-  recent=[...new Set(recent)].slice(0,5);
-  localStorage.setItem("recent",JSON.stringify(recent));
+  recent = [...new Set(recent)].slice(0,5);
+  localStorage.setItem("recent", JSON.stringify(recent));
+
+  renderRecent();
 }
 
 function copyLink(link){
@@ -263,20 +290,25 @@ function copyLink(link){
 
 function fav(link,title){
   favorites.push({link,title});
-  localStorage.setItem("fav",JSON.stringify(favorites));
+  localStorage.setItem("fav", JSON.stringify(favorites));
+  renderFav();
 }
 
 function renderFav(){
-  favoritesDiv.innerHTML="";
-  favorites.forEach(f=>{
-    favoritesDiv.innerHTML+=`<div>${f.title}</div>`;
+  const box = document.getElementById("favorites");
+  box.innerHTML = "";
+
+  favorites.forEach(f => {
+    box.innerHTML += `<div>${f.title}</div>`;
   });
 }
 
 function renderRecent(){
-  recentDiv.innerHTML="";
-  recent.forEach(r=>{
-    recentDiv.innerHTML+=`<div>${r}</div>`;
+  const box = document.getElementById("recent");
+  box.innerHTML = "";
+
+  recent.forEach(r => {
+    box.innerHTML += `<div>${r}</div>`;
   });
 }
 
