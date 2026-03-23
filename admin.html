@@ -14,15 +14,12 @@ body{
   color:white;
 }
 
-/* NAV */
 .nav{
   text-align:center;
   padding:15px;
   background:rgba(255,255,255,0.05);
-  font-size:18px;
 }
 
-/* TABS */
 .tabs{
   display:flex;
   justify-content:center;
@@ -35,11 +32,6 @@ body{
   cursor:pointer;
   background:rgba(255,255,255,0.05);
   border-radius:8px;
-  transition:0.3s;
-}
-
-.tab:hover{
-  transform:scale(1.05);
 }
 
 .tab.active{
@@ -47,7 +39,6 @@ body{
   color:black;
 }
 
-/* SECTION */
 .section{
   display:none;
   padding:20px;
@@ -59,7 +50,6 @@ body{
   display:block;
 }
 
-/* INPUTS */
 input,select{
   width:100%;
   padding:10px;
@@ -70,13 +60,11 @@ input,select{
   border-radius:8px;
 }
 
-input:focus,select:focus{
+input:focus{
   outline:none;
   border:1px solid cyan;
-  box-shadow:0 0 8px cyan;
 }
 
-/* BUTTON */
 button{
   width:100%;
   padding:10px;
@@ -86,26 +74,19 @@ button{
   border-radius:8px;
   color:black;
   font-weight:bold;
-  transition:0.3s;
 }
 
-button:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 10px cyan;
-}
-
-/* CARD */
 .item{
   background:rgba(255,255,255,0.05);
   padding:12px;
   margin-top:10px;
   border-radius:10px;
-  transition:0.3s;
 }
 
-.item:hover{
-  transform:translateY(-3px);
-  box-shadow:0 0 15px rgba(0,255,255,0.3);
+/* COUNT BADGES */
+.count{
+  color:cyan;
+  font-size:14px;
 }
 </style>
 </head>
@@ -130,11 +111,20 @@ button:hover{
 
 <!-- USERS -->
 <div id="users" class="section">
+
   <h3><i class="fa fa-users"></i> User Management</h3>
 
   <input id="userSearch" placeholder="Search users..." oninput="loadUsers()">
 
-  <div id="userList"></div>
+  <h4>🟡 Pending <span class="count" id="pendingCount"></span></h4>
+  <div id="pendingList"></div>
+
+  <h4>🟢 Approved <span class="count" id="approvedCount"></span></h4>
+  <div id="approvedList"></div>
+
+  <h4>🔴 Blocked <span class="count" id="blockedCount"></span></h4>
+  <div id="blockedList"></div>
+
 </div>
 
 <!-- RESOURCES -->
@@ -162,7 +152,7 @@ button:hover{
 
 </div>
 
-<!-- ACTIVE USERS -->
+<!-- ACTIVE -->
 <div id="active" class="section">
   <h3>🟢 Active Users</h3>
   <div id="activeList"></div>
@@ -202,61 +192,85 @@ async function loadStats(){
   resCount.innerText = res.data.length;
 }
 
-// USERS
+// USERS WITH COUNTS
 async function loadUsers(){
+
   const { data } = await client.from("users").select("*");
 
   const search = userSearch.value.toLowerCase();
 
-  userList.innerHTML="";
+  pendingList.innerHTML="";
+  approvedList.innerHTML="";
+  blockedList.innerHTML="";
+
+  let pending = 0, approved = 0, blocked = 0;
 
   data.forEach(u=>{
-    if(u.id_no.toLowerCase().includes(search)){
-      userList.innerHTML += `
-        <div class="item">
-          <b>${u.id_no}</b> (${u.branch})<br>
-          Role: ${u.role} | Status: ${u.status}<br>
 
-          ${u.status === "pending" ? 
-            `<button onclick="approve('${u.id_no}')">Approve</button>` : ""}
+    if(!u.id_no.toLowerCase().includes(search)) return;
 
-          <button onclick="blockUser('${u.id_no}')">Block</button>
-          <button onclick="unblockUser('${u.id_no}')">Unblock</button>
+    const html = `
+      <div class="item">
+        <b>${u.id_no}</b> (${u.branch})<br>
+        Role: ${u.role}<br>
 
-          ${u.role !== "admin" ? 
-            `<button onclick="removeUser('${u.id_no}')">Delete</button>` : ""}
-        </div>
-      `;
+        ${u.status === "pending" ? 
+          `<button onclick="approve('${u.id_no}')">Approve</button>` : ""}
+
+        ${u.status !== "blocked" ? 
+          `<button onclick="blockUser('${u.id_no}')">Block</button>` : ""}
+
+        ${u.status === "blocked" ? 
+          `<button onclick="unblockUser('${u.id_no}')">Unblock</button>` : ""}
+
+        ${u.role !== "admin" ? 
+          `<button onclick="removeUser('${u.id_no}')">Delete</button>` : ""}
+      </div>
+    `;
+
+    if(u.status === "pending"){
+      pending++;
+      pendingList.innerHTML += html;
     }
+    else if(u.status === "approved"){
+      approved++;
+      approvedList.innerHTML += html;
+    }
+    else if(u.status === "blocked"){
+      blocked++;
+      blockedList.innerHTML += html;
+    }
+
   });
+
+  pendingCount.innerText = `(${pending})`;
+  approvedCount.innerText = `(${approved})`;
+  blockedCount.innerText = `(${blocked})`;
 }
 
-// APPROVE
+// ACTIONS
 async function approve(id){
   await client.from("users").update({status:"approved"}).eq("id_no",id);
   loadUsers();
 }
 
-// BLOCK
 async function blockUser(id){
   await client.from("users").update({status:"blocked"}).eq("id_no",id);
   loadUsers();
 }
 
-// UNBLOCK
 async function unblockUser(id){
   await client.from("users").update({status:"approved"}).eq("id_no",id);
   loadUsers();
 }
 
-// DELETE USER
 async function removeUser(id){
   if(!confirm("Delete user permanently?")) return;
   await client.from("users").delete().eq("id_no",id);
   loadUsers();
 }
 
-// ADD RESOURCE
+// RESOURCE ADD
 async function add(){
 
   if(!title.value){
@@ -273,10 +287,7 @@ async function add(){
     const file = fileInput.files[0];
     const fileName = Date.now() + "_" + file.name;
 
-    const { error } = await client
-      .storage
-      .from("files")
-      .upload(fileName, file);
+    const { error } = await client.storage.from("files").upload(fileName, file);
 
     if(error){
       alert("Upload failed");
@@ -340,7 +351,6 @@ async function loadResources(){
 async function loadActive(){
 
   const now = new Date();
-
   const { data } = await client.from("users").select("*");
 
   activeList.innerHTML="";
