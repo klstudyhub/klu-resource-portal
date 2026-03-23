@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KL Study Hub — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #04060d;
+  --surface: #0a0d18;
+  --card: rgba(255,255,255,0.03);
+  --card-hover: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.07);
+  --border-glow: rgba(0,245,196,0.25);
+  --primary: #00f5c4;
+  --primary-dim: rgba(0,245,196,0.08);
+  --primary-glow: rgba(0,245,196,0.18);
+  --gold: #f5c842;
+  --gold-dim: rgba(245,200,66,0.10);
+  --red: #ff5b5b;
+  --text: #dde6f0;
+  --muted: rgba(221,230,240,0.45);
+  --nav-h: 64px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── AMBIENT ORBS ── */
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(110px); pointer-events: none; z-index: 0;
+}
+.orb1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(0,245,196,0.09) 0%, transparent 70%);
+  top: -150px; left: -150px;
+  animation: orbFloat1 20s ease-in-out infinite alternate;
+}
+.orb2 {
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, rgba(245,200,66,0.07) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+  animation: orbFloat2 25s ease-in-out infinite alternate;
+}
+@keyframes orbFloat1 { from { transform: translate(0,0); } to { transform: translate(60px,80px); } }
+@keyframes orbFloat2 { from { transform: translate(0,0); } to { transform: translate(-60px,-60px); } }
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--nav-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px;
+  background: rgba(4,6,13,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
+.nav-logo .accent { color: var(--primary); }
+
+.nav-links { display: flex; align-items: center; gap: 6px; }
+.nav-link {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13.5px; font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  cursor: pointer;
+  background: transparent; border: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-link.danger { color: rgba(255,91,91,0.7); }
+.nav-link.danger:hover { color: var(--red); background: rgba(255,91,91,0.08); }
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+
+/* ── WELCOME BANNER ── */
+.banner {
+  background: linear-gradient(135deg, rgba(0,245,196,0.06) 0%, rgba(245,200,66,0.04) 100%);
+  border: 1px solid rgba(0,245,196,0.12);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+.banner-left h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 700;
+  margin-bottom: 4px;
+}
+.banner-left h1 span { color: var(--primary); }
+.banner-left p { font-size: 13px; color: var(--muted); }
+
+.banner-stats {
+  display: flex; gap: 20px;
+}
+.stat {
+  text-align: center;
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── SEARCH BAR ── */
+.search-row {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 28px;
+  animation: fadeUp 0.6s 0.1s ease both;
+  opacity: 0;
+}
+.search-wrap {
+  flex: 1; min-width: 200px;
+  position: relative;
+}
+.search-wrap .icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px; pointer-events: none;
+  opacity: 0.4;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.search-wrap input::placeholder { color: rgba(221,230,240,0.25); }
+.search-wrap input:focus {
+  border-color: rgba(0,245,196,0.4);
+  box-shadow: 0 0 0 3px rgba(0,245,196,0.07);
+}
+.filter-select {
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 130px;
+  transition: border-color 0.25s;
+}
+.filter-select:focus { border-color: rgba(0,245,196,0.4); }
+.filter-select option { background: #0d1117; }
+
+/* ── SECTION HEADING ── */
+.sec-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.sec-head h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--text);
+}
+.sec-head .count {
+  padding: 2px 9px; border-radius: 20px;
+  background: var(--primary-dim);
+  color: var(--primary);
+  font-size: 12px; font-weight: 600;
+}
+
+/* ── HORIZONTAL SCROLL SHELF ── */
+.shelf {
+  display: flex; gap: 10px;
+  overflow-x: auto; padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,245,196,0.2) transparent;
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s 0.15s ease both;
+  opacity: 0;
+}
+.shelf::-webkit-scrollbar { height: 4px; }
+.shelf::-webkit-scrollbar-track { background: transparent; }
+.shelf::-webkit-scrollbar-thumb { background: rgba(0,245,196,0.2); border-radius: 4px; }
+
+.shelf-chip {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+}
+.shelf-chip .chip-icon { font-size: 16px; }
+.shelf-chip .chip-title { font-weight: 500; }
+.shelf-chip .chip-sub { font-size: 11px; color: var(--muted); }
+.shelf-chip-empty { color: var(--muted); font-size: 13px; padding: 9px 0; }
+
+/* ── BRANCH GRID ── */
+.branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+  animation: fadeUp 0.6s 0.2s ease both;
+  opacity: 0;
+}
+
+.branch-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+.branch-card:hover {
+  border-color: rgba(0,245,196,0.25);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  transform: translateY(-3px);
+}
+.branch-card.open {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(0,245,196,0.15), 0 8px 30px rgba(0,245,196,0.08);
+}
+
+.branch-header {
+  padding: 16px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.branch-left { display: flex; align-items: center; gap: 12px; }
+.branch-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  background: var(--primary-dim);
+  border: 1px solid rgba(0,245,196,0.12);
+  flex-shrink: 0;
+}
+.branch-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+}
+.branch-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.branch-badge {
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--primary-dim);
+  color: var(--primary);
+  font-size: 12px; font-weight: 600;
+}
+
+.branch-resources {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.23,1,0.32,1);
+  border-top: 0px solid var(--border);
+}
+.branch-resources.show {
+  max-height: 400px;
+  border-top-width: 1px;
+  overflow-y: auto;
+}
+.branch-resources::-webkit-scrollbar { width: 4px; }
+.branch-resources::-webkit-scrollbar-thumb { background: rgba(0,245,196,0.2); border-radius: 4px; }
+
+.res-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.res-item:hover { background: rgba(255,255,255,0.03); }
+.res-item:last-child { border-bottom: none; }
+
+.res-icon {
+  width: 30px; height: 30px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.res-icon.pdf { background: rgba(255,91,91,0.12); }
+.res-icon.link { background: rgba(0,245,196,0.10); }
+
+.res-title {
+  flex: 1; font-size: 13px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.res-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.res-btn {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.res-btn:hover { background: var(--primary-dim); color: var(--primary); border-color: rgba(0,245,196,0.3); }
+.res-btn.starred { color: var(--gold); border-color: rgba(245,200,66,0.3); background: var(--gold-dim); }
+
+.no-res {
+  padding: 14px 18px;
+  font-size: 13px; color: var(--muted);
+}
+
+/* ── FEED GRID ── */
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  animation: fadeUp 0.6s 0.3s ease both;
+  opacity: 0;
+}
+.feed-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.feed-card:hover {
+  border-color: rgba(0,245,196,0.2);
+  transform: translateY(-2px);
+}
+.feed-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.feed-icon.pdf { background: rgba(255,91,91,0.12); }
+.feed-icon.link { background: rgba(0,245,196,0.10); }
+.feed-title { font-size: 13px; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed-branch { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.feed-actions { display: flex; gap: 5px; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--muted);
+  margin-top: 20px;
+}
+footer a { color: var(--primary); text-decoration: none; }
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed; top: 80px; right: 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 9999;
+}
+.toast {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 18px;
+  border-radius: 12px;
+  background: rgba(10,14,26,0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  min-width: 240px; max-width: 320px;
+  animation: toastIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+  position: relative; overflow: hidden;
+}
+.toast.success { border-left-color: var(--primary); }
+.toast.error   { border-left-color: var(--red); }
+.toast.info    { border-left-color: var(--gold); }
+.toast.hiding  { animation: toastOut 0.35s ease-in forwards; }
+@keyframes toastIn  { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes toastOut { to{transform:translateX(110%);opacity:0} }
+.toast-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0;
+}
+.toast.success .toast-icon { background:rgba(0,245,196,0.15); color:var(--primary); }
+.toast.error   .toast-icon { background:rgba(255,91,91,0.15);  color:var(--red); }
+.toast.info    .toast-icon { background:rgba(245,200,66,0.15); color:var(--gold); }
+.toast-msg { font-size:13px; font-weight:500; line-height:1.4; }
+.toast-bar { position:absolute; bottom:0; left:0; height:2px; width:100%; transform-origin:left; animation:barShrink 3s linear forwards; }
+.toast.success .toast-bar { background:var(--primary); }
+.toast.error   .toast-bar { background:var(--red); }
+.toast.info    .toast-bar { background:var(--gold); }
+@keyframes barShrink { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ── SKELETON LOADING ── */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+.skel-card { height: 68px; border-radius: 14px; margin-bottom: 10px; }
+
+.hidden { display: none !important; }
+
+/* RESPONSIVE */
+@media(max-width:600px) {
+  .banner-stats { gap: 10px; }
+  .stat { padding: 8px 12px; }
+  .stat-num { font-size: 18px; }
+  nav { padding: 0 16px; }
+  main { padding: 20px 16px 50px; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="dot"></div>
+    KL <span class="accent">&nbsp;STUDY HUB</span>
+  </div>
+  <div class="nav-links">
+    <a href="help.html" class="nav-link">Help</a>
+    <a href="privacy.html" class="nav-link">Privacy</a>
+    <button class="nav-link danger" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- BANNER -->
+  <div class="banner">
+    <div class="banner-left">
+      <h1>Welcome back, <span id="welcomeName"></span> 👋</h1>
+      <p id="welcomeSub">Loading your dashboard…</p>
+    </div>
+    <div class="banner-stats">
+      <div class="stat">
+        <div class="stat-num" id="statTotal">—</div>
+        <div class="stat-label">Resources</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statFav">—</div>
+        <div class="stat-label">Favourites</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statRecent">—</div>
+        <div class="stat-label">Recent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-row">
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input id="search" placeholder="Search resources, topics…" oninput="render()">
+    </div>
+    <select id="filter" class="filter-select" onchange="render()">
+      <option value="all">All Types</option>
+      <option value="pdf">📄 PDFs only</option>
+      <option value="link">🔗 Links only</option>
+    </select>
+  </div>
+
+  <!-- FAVOURITES -->
+  <div style="margin-bottom:32px; animation: fadeUp 0.6s 0.15s ease both; opacity:0;">
+    <div class="sec-head">
+      <h3>⭐ Favourites</h3>
+      <span class="count" id="favCount">0</span>
+    </div>
+    <div class="shelf" id="favorites"></div>
+  </div>
+
+  <!-- RECENT -->
+  <div style="margin-bottom:32px; animation: fadeUp 0.6s 0.18s ease both; opacity:0;">
+    <div class="sec-head">
+      <h3>👁 Recently Viewed</h3>
+      <span class="count" id="recentCount">0</span>
+    </div>
+    <div class="shelf" id="recent"></div>
+  </div>
+
+  <!-- BRANCH GRID -->
+  <div class="sec-head" style="animation: fadeUp 0.6s 0.2s ease both; opacity:0;">
+    <h3>📂 Browse by Branch</h3>
+  </div>
+  <div class="branch-grid" id="grid">
+    <!-- skeleton -->
+    <div class="skeleton skel-card"></div>
+    <div class="skeleton skel-card"></div>
+    <div class="skeleton skel-card"></div>
+    <div class="skeleton skel-card"></div>
+    <div class="skeleton skel-card"></div>
+  </div>
+
+  <!-- FEED -->
+  <div class="sec-head" style="margin-top:8px; animation: fadeUp 0.6s 0.3s ease both; opacity:0;">
+    <h3>📚 Explore All Resources</h3>
+    <span class="count" id="feedCount">0</span>
+  </div>
+  <div class="feed-grid" id="feed"></div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  KL Study Hub © 2026 &nbsp;·&nbsp;
+  <a href="mailto:klstudyhub45@gmail.com">klstudyhub45@gmail.com</a>
+</footer>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const { createClient } = supabase;
+const client = createClient(
+  "https://jkgkswsiunpzwnurqvjq.supabase.co",
+  "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
+);
+
+const user = JSON.parse(localStorage.getItem("user"));
+if (!user) window.location = "index.html";
+
+// Welcome
+document.getElementById("welcomeName").textContent = user.id_no;
+document.getElementById("welcomeSub").textContent =
+  `Branch: ${user.branch} · ${new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'})}`;
+
+let allData = [];
+let favorites = JSON.parse(localStorage.getItem("fav") || "[]");
+let recentLinks = JSON.parse(localStorage.getItem("recent") || "[]");
+
+const branches = [
+  { id: "CSE",  icon: "💻", name: "Computer Science" },
+  { id: "ECE",  icon: "📡", name: "Electronics & Comm." },
+  { id: "EEE",  icon: "⚡", name: "Electrical Engg." },
+  { id: "AIDS", icon: "🤖", name: "AI & Data Science" },
+  { id: "CSIT", icon: "🖥️", name: "CS & IT" },
+];
+
+// ── LOAD ──
+async function load() {
+  const { data } = await client.from("resources").select("*");
+  allData = data || [];
+  updateStats();
+  render();
+}
+
+function updateStats() {
+  document.getElementById("statTotal").textContent = allData.length;
+  document.getElementById("statFav").textContent = favorites.length;
+  document.getElementById("statRecent").textContent = recentLinks.length;
+}
+
+// ── RENDER ──
+function render() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const ft = document.getElementById("filter").value;
+
+  const filtered = allData.filter(r =>
+    r.title.toLowerCase().includes(q) &&
+    (ft === "all" || (ft === "pdf" && r.link.includes(".pdf")) || (ft === "link" && !r.link.includes(".pdf")))
+  );
+
+  renderGrid(filtered);
+  renderFeed(filtered);
+  renderFavs();
+  renderRecent();
+}
+
+function isPdf(link) { return link && link.includes(".pdf"); }
+
+// ── BRANCH GRID ──
+function renderGrid(data) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  branches.forEach(b => {
+    const bd = data.filter(r => r.branch === b.id);
+    const card = document.createElement("div");
+    card.className = "branch-card";
+    card.innerHTML = `
+      <div class="branch-header">
+        <div class="branch-left">
+          <div class="branch-icon">${b.icon}</div>
+          <div>
+            <div class="branch-name">${b.id}</div>
+            <div class="branch-sub">${b.name}</div>
+          </div>
+        </div>
+        <span class="branch-badge">${bd.length}</span>
+      </div>
+      <div class="branch-resources" id="res-${b.id}">
+        ${bd.length === 0
+          ? `<div class="no-res">No resources found</div>`
+          : bd.map(r => resItemHTML(r)).join("")
+        }
+      </div>
+    `;
+
+    card.querySelector(".branch-header").addEventListener("click", () => {
+      const resBox = document.getElementById(`res-${b.id}`);
+      const isOpen = card.classList.contains("open");
+
+      document.querySelectorAll(".branch-card").forEach(c => {
+        c.classList.remove("open");
+        c.querySelector(".branch-resources").classList.remove("show");
+      });
+
+      if (!isOpen) {
+        card.classList.add("open");
+        resBox.classList.add("show");
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function resItemHTML(r) {
+  const type = isPdf(r.link) ? "pdf" : "link";
+  const emoji = type === "pdf" ? "📄" : "🔗";
+  const isFav = favorites.some(f => f.link === r.link);
+  return `
+    <div class="res-item">
+      <div class="res-icon ${type}">${emoji}</div>
+      <div class="res-title" title="${r.title}">${r.title}</div>
+      <div class="res-actions">
+        <button class="res-btn" title="Open" onclick="openRes('${r.link}','${r.title.replace(/'/g,"\\'")}')">↗</button>
+        <button class="res-btn" title="Copy link" onclick="copyLink('${r.link}')">⧉</button>
+        <button class="res-btn ${isFav ? 'starred' : ''}" title="Favourite" onclick="toggleFav('${r.link}','${r.title.replace(/'/g,"\\'")}', this)">★</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── FEED ──
+function renderFeed(data) {
+  const feed = document.getElementById("feed");
+  const items = data.slice(0, 12);
+  document.getElementById("feedCount").textContent = data.length;
+  feed.innerHTML = "";
+
+  if (items.length === 0) {
+    feed.innerHTML = `<div style="color:var(--muted);font-size:13px;">No resources match your search.</div>`;
+    return;
+  }
+
+  items.forEach(r => {
+    const type = isPdf(r.link) ? "pdf" : "link";
+    const emoji = type === "pdf" ? "📄" : "🔗";
+    const isFav = favorites.some(f => f.link === r.link);
+    const div = document.createElement("div");
+    div.className = "feed-card";
+    div.innerHTML = `
+      <div class="feed-icon ${type}">${emoji}</div>
+      <div style="flex:1;overflow:hidden;">
+        <div class="feed-title" title="${r.title}">${r.title}</div>
+        <div class="feed-branch">${r.branch}</div>
+      </div>
+      <div class="feed-actions">
+        <button class="res-btn" title="Open" onclick="openRes('${r.link}','${r.title.replace(/'/g,"\\'")}')">↗</button>
+        <button class="res-btn ${isFav ? 'starred' : ''}" title="Favourite" onclick="toggleFav('${r.link}','${r.title.replace(/'/g,"\\'")}', this)">★</button>
+      </div>
+    `;
+    feed.appendChild(div);
+  });
+}
+
+// ── FAVOURITES ──
+function renderFavs() {
+  const box = document.getElementById("favorites");
+  document.getElementById("favCount").textContent = favorites.length;
+  box.innerHTML = "";
+
+  if (favorites.length === 0) {
+    box.innerHTML = `<div class="shelf-chip-empty">No favourites yet — star a resource to save it here.</div>`;
+    return;
+  }
+  favorites.forEach(f => {
+    const chip = document.createElement("div");
+    chip.className = "shelf-chip";
+    chip.innerHTML = `
+      <span class="chip-icon">${isPdf(f.link) ? "📄" : "🔗"}</span>
+      <div>
+        <div class="chip-title">${f.title}</div>
+        <div class="chip-sub">tap to open</div>
+      </div>
+    `;
+    chip.onclick = () => openRes(f.link, f.title);
+    box.appendChild(chip);
+  });
+}
+
+// ── RECENT ──
+function renderRecent() {
+  const box = document.getElementById("recent");
+  document.getElementById("recentCount").textContent = recentLinks.length;
+  box.innerHTML = "";
+
+  if (recentLinks.length === 0) {
+    box.innerHTML = `<div class="shelf-chip-empty">Nothing opened yet.</div>`;
+    return;
+  }
+  recentLinks.forEach(r => {
+    const chip = document.createElement("div");
+    chip.className = "shelf-chip";
+    chip.innerHTML = `
+      <span class="chip-icon">${isPdf(r.link) ? "📄" : "🔗"}</span>
+      <div>
+        <div class="chip-title" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title || r.link}</div>
+        <div class="chip-sub">recently opened</div>
+      </div>
+    `;
+    chip.onclick = () => window.open(r.link, "_blank");
+    box.appendChild(chip);
+  });
+}
+
+// ── ACTIONS ──
+function openRes(link, title) {
+  window.open(link, "_blank");
+  recentLinks = recentLinks.filter(r => r.link !== link);
+  recentLinks.unshift({ link, title });
+  recentLinks = recentLinks.slice(0, 5);
+  localStorage.setItem("recent", JSON.stringify(recentLinks));
+  renderRecent();
+  updateStats();
+}
+
+function copyLink(link) {
+  navigator.clipboard.writeText(link).then(() => showToast("Link copied!", "info"));
+}
+
+function toggleFav(link, title, btn) {
+  const idx = favorites.findIndex(f => f.link === link);
+  if (idx === -1) {
+    favorites.push({ link, title });
+    btn.classList.add("starred");
+    showToast("Added to favourites ⭐", "success");
+  } else {
+    favorites.splice(idx, 1);
+    btn.classList.remove("starred");
+    showToast("Removed from favourites", "info");
+  }
+  localStorage.setItem("fav", JSON.stringify(favorites));
+  renderFavs();
+  updateStats();
+}
+
+function logout() {
+  localStorage.removeItem("user");
+  window.location = "index.html";
+}
+
+// ── TOAST ──
+function showToast(msg, type = "success") {
+  const wrap = document.getElementById("toastWrap");
+  const icons = { success: "✓", error: "✕", info: "i" };
+  const t = document.createElement("div");
+  t.className = `toast ${type}`;
+  t.innerHTML = `
+    <div class="toast-icon">${icons[type] || "i"}</div>
+    <div class="toast-msg">${msg}</div>
+    <div class="toast-bar"></div>
+  `;
+  wrap.appendChild(t);
+  setTimeout(() => {
+    t.classList.add("hiding");
+    t.addEventListener("animationend", () => t.remove());
+  }, 3000);
+}
+
+load();
+</script>
+</body>
+</html>
