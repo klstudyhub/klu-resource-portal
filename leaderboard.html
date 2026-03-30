@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KL Study Hub — Leaderboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04060d;--surface:#080b14;
+  --card:rgba(255,255,255,0.03);--card-hover:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.07);
+  --primary:#00f5c4;--primary-dim:rgba(0,245,196,0.08);
+  --gold:#f5c842;--gold-dim:rgba(245,200,66,0.10);
+  --red:#ff5b5b;--red-dim:rgba(255,91,91,0.10);
+  --blue:#5b8fff;--blue-dim:rgba(91,143,255,0.10);
+  --purple:#b57bff;--purple-dim:rgba(181,123,255,0.10);
+  --silver:#c0c0c0;--bronze:#cd7f32;
+  --text:#dde6f0;--muted:rgba(221,230,240,0.4);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(245,200,66,0.10) 0%,transparent 70%);top:-150px;left:-100px;animation:oF1 20s ease-in-out infinite alternate;}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(0,245,196,0.08) 0%,transparent 70%);bottom:-100px;right:-50px;animation:oF2 25s ease-in-out infinite alternate;}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(181,123,255,0.07) 0%,transparent 70%);top:40%;right:10%;animation:oF3 18s ease-in-out infinite alternate;}
+@keyframes oF1{from{transform:translate(0,0)}to{transform:translate(60px,80px)}}
+@keyframes oF2{from{transform:translate(0,0)}to{transform:translate(-60px,-60px)}}
+@keyframes oF3{from{transform:translate(0,0)}to{transform:translate(40px,-50px)}}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(245,200,66,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(245,200,66,0.015) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(4,6,13,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;letter-spacing:-0.5px;text-decoration:none;color:var(--text);}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 10px var(--primary);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.75)}}
+.nav-logo .acc{color:var(--primary);}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:color 0.2s,background 0.2s;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+
+main{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:32px 24px 80px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fadeUp 0.5s 0.05s ease both;}
+.a2{animation:fadeUp 0.5s 0.10s ease both;}
+.a3{animation:fadeUp 0.5s 0.15s ease both;}
+
+/* HERO */
+.lb-hero{text-align:center;margin-bottom:32px;}
+.lb-hero h1{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;margin-bottom:8px;}
+.lb-hero h1 span{color:var(--gold);}
+.lb-hero p{font-size:14px;color:var(--muted);}
+.live-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:rgba(255,91,91,0.1);border:1px solid rgba(255,91,91,0.2);font-size:12px;font-weight:600;color:var(--red);margin-top:10px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:livePulse 1s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.filter-chip{padding:8px 18px;border-radius:25px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.filter-chip:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
+.filter-chip.active{background:var(--gold-dim);border-color:rgba(245,200,66,0.3);color:var(--gold);}
+.filter-select{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:25px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;outline:none;cursor:pointer;appearance:none;transition:border-color 0.2s;}
+.filter-select:focus{border-color:rgba(245,200,66,0.3);}
+.filter-select option{background:#0d1117;}
+
+/* TOP 3 PODIUM */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:36px;padding:0 20px;}
+.podium-item{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;max-width:200px;}
+.podium-rank{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+.podium-avatar{border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:white;position:relative;}
+.podium-avatar .rank-crown{position:absolute;top:-18px;font-size:22px;}
+.podium-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;text-align:center;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.podium-branch{font-size:11px;color:var(--muted);}
+.podium-pts{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.podium-level{font-size:11px;color:var(--muted);}
+.podium-base{border-radius:16px 16px 0 0;width:100%;display:flex;align-items:center;justify-content:center;padding:12px 0;}
+.podium-base-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;opacity:0.4;}
+
+/* 1st place */
+.p1 .podium-avatar{width:80px;height:80px;font-size:28px;background:linear-gradient(135deg,#f5c842,#e6a817);box-shadow:0 0 30px rgba(245,200,66,0.4);}
+.p1 .podium-pts{color:var(--gold);}
+.p1 .podium-base{background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(245,200,66,0.05));border:1px solid rgba(245,200,66,0.2);height:120px;}
+/* 2nd place */
+.p2 .podium-avatar{width:68px;height:68px;font-size:24px;background:linear-gradient(135deg,#c0c0c0,#a8a8a8);box-shadow:0 0 20px rgba(192,192,192,0.3);}
+.p2 .podium-pts{color:var(--silver);}
+.p2 .podium-base{background:linear-gradient(135deg,rgba(192,192,192,0.1),rgba(192,192,192,0.03));border:1px solid rgba(192,192,192,0.15);height:90px;}
+/* 3rd place */
+.p3 .podium-avatar{width:60px;height:60px;font-size:20px;background:linear-gradient(135deg,#cd7f32,#b36b22);box-shadow:0 0 16px rgba(205,127,50,0.3);}
+.p3 .podium-pts{color:var(--bronze);}
+.p3 .podium-base{background:linear-gradient(135deg,rgba(205,127,50,0.1),rgba(205,127,50,0.03));border:1px solid rgba(205,127,50,0.15);height:70px;}
+
+/* LEADERBOARD TABLE */
+.lb-table{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:24px;}
+.lb-table-head{display:grid;grid-template-columns:50px 1fr 100px 80px 80px;padding:12px 20px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);}
+.lb-row{display:grid;grid-template-columns:50px 1fr 100px 80px 80px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.035);align-items:center;transition:background 0.15s;cursor:default;}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:var(--card-hover);}
+.lb-row.me{background:linear-gradient(135deg,rgba(0,245,196,0.06),rgba(0,245,196,0.02));border-left:3px solid var(--primary);}
+.lb-row.top1{background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(245,200,66,0.02));}
+.lb-row.top2{background:linear-gradient(135deg,rgba(192,192,192,0.04),transparent);}
+.lb-row.top3{background:linear-gradient(135deg,rgba(205,127,50,0.05),transparent);}
+
+/* RANK */
+.rank-num{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;text-align:center;}
+.rank-1{color:var(--gold);}
+.rank-2{color:var(--silver);}
+.rank-3{color:var(--bronze);}
+.rank-other{color:var(--muted);}
+
+/* USER CELL */
+.user-cell{display:flex;align-items:center;gap:12px;overflow:hidden;}
+.lb-avatar{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;flex-shrink:0;}
+.lb-user-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-user-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px;}
+.me-tag{padding:1px 6px;border-radius:10px;background:var(--primary-dim);color:var(--primary);font-size:10px;font-weight:700;}
+
+/* LEVEL CELL */
+.level-cell{display:flex;align-items:center;gap:6px;}
+.level-icon-sm{font-size:16px;}
+.level-name-sm{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65px;}
+
+/* STREAK CELL */
+.streak-cell{font-size:13px;font-weight:600;color:var(--gold);}
+
+/* POINTS CELL */
+.pts-cell{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--primary);text-align:right;}
+
+/* MY RANK BANNER */
+.my-rank-banner{background:linear-gradient(135deg,rgba(0,245,196,0.08),rgba(0,245,196,0.03));border:1px solid rgba(0,245,196,0.15);border-radius:14px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.mrb-rank{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--primary);line-height:1;}
+.mrb-info{flex:1;}
+.mrb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;}
+.mrb-sub{font-size:13px;color:var(--muted);}
+.mrb-stats{display:flex;gap:16px;flex-wrap:wrap;}
+.mrb-stat{text-align:center;}
+.mrb-stat .n{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--primary);}
+.mrb-stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+.empty .ei{font-size:32px;margin-bottom:10px;}
+
+/* SKEL */
+.skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:12px;}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* TOAST */
+.toast-wrap{position:fixed;top:80px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;}
+.toast{display:flex;align-items:center;gap:12px;padding:13px 18px;border-radius:12px;background:rgba(8,11,20,0.95);backdrop-filter:blur(16px);border:1px solid var(--border);border-left:3px solid var(--primary);box-shadow:0 12px 40px rgba(0,0,0,0.45);min-width:240px;animation:toastIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);position:relative;overflow:hidden;}
+.toast.hiding{animation:toastOut 0.35s ease-in forwards;}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes toastOut{to{transform:translateX(110%);opacity:0}}
+.toast-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:rgba(0,245,196,0.15);color:var(--primary);}
+.toast-msg{font-size:13px;font-weight:500;}
+.toast-bar{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:barShrink 3s linear forwards;background:var(--primary);}
+@keyframes barShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+footer{text-align:center;padding:20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);}
+.footer-links{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;}
+.footer-link{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;font-weight:500;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);transition:all 0.2s;}
+.footer-link.email{color:var(--primary);}
+.footer-link.email:hover{background:var(--primary-dim);border-color:rgba(0,245,196,0.3);}
+.footer-link.insta{color:#e1306c;}
+.footer-link.insta:hover{background:rgba(225,48,108,0.08);border-color:rgba(225,48,108,0.3);}
+
+@media(max-width:600px){nav{padding:0 16px;}main{padding:20px 14px 60px;}.lb-hero h1{font-size:26px;}.lb-table-head,.lb-row{grid-template-columns:40px 1fr 80px 60px;}.lb-table-head :last-child,.lb-row .streak-cell{display:none;}.podium{gap:8px;}.p1 .podium-avatar{width:64px;height:64px;font-size:22px;}.p2 .podium-avatar{width:54px;height:54px;}.p3 .podium-avatar{width:48px;height:48px;}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div class="grid-bg"></div>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo"><div class="nav-dot"></div>KL <span class="acc">&nbsp;STUDY HUB</span></a>
+  <div class="nav-right">
+    <a href="profile.html" class="nav-btn"><i class="fa fa-user"></i> Profile</a>
+    <a href="dashboard.html" class="nav-btn"><i class="fa fa-home"></i> Dashboard</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="lb-hero a1">
+    <h1>🏆 <span>Leaderboard</span></h1>
+    <p>Top students ranked by points · Updated in real time</p>
+    <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters a2">
+    <div class="filter-chip active" id="filterAll" onclick="setFilter('all',this)">🌐 Overall</div>
+    <div class="filter-chip" id="filterBranch" onclick="setFilter('branch',this)">📚 My Branch</div>
+    <div class="filter-chip" id="filterYear" onclick="setFilter('year',this)">🎓 My Year</div>
+    <select class="filter-select" id="branchSelect" onchange="renderLeaderboard()">
+      <option value="all">All Branches</option>
+      <option value="CSE">CSE</option>
+      <option value="ECE">ECE</option>
+      <option value="EEE">EEE</option>
+      <option value="AIDS">AIDS</option>
+      <option value="CSIT">CSIT</option>
+    </select>
+    <select class="filter-select" id="yearSelect" onchange="renderLeaderboard()">
+      <option value="all">All Years</option>
+      <option value="1">1st Year</option>
+      <option value="2">2nd Year</option>
+      <option value="3">3rd Year</option>
+      <option value="4">4th Year</option>
+    </select>
+  </div>
+
+  <!-- MY RANK BANNER -->
+  <div class="my-rank-banner a2" id="myRankBanner">
+    <div class="mrb-rank" id="myRankNum">#—</div>
+    <div class="mrb-info">
+      <div class="mrb-title" id="myRankTitle">Your Rank</div>
+      <div class="mrb-sub" id="myRankSub">Loading…</div>
+    </div>
+    <div class="mrb-stats">
+      <div class="mrb-stat"><div class="n" id="myPts">—</div><div class="l">Points</div></div>
+      <div class="mrb-stat"><div class="n" id="myStreak">—</div><div class="l">Streak</div></div>
+      <div class="mrb-stat"><div class="n" id="myBadges">—</div><div class="l">Badges</div></div>
+    </div>
+  </div>
+
+  <!-- PODIUM -->
+  <div class="podium a2" id="podium">
+    <div class="skel" style="height:200px;flex:1;border-radius:16px;"></div>
+    <div class="skel" style="height:240px;flex:1;border-radius:16px;"></div>
+    <div class="skel" style="height:180px;flex:1;border-radius:16px;"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="lb-table a3">
+    <div class="lb-table-head">
+      <div style="text-align:center;">Rank</div>
+      <div>Student</div>
+      <div>Level</div>
+      <div style="text-align:center;">Streak</div>
+      <div style="text-align:right;">Points</div>
+    </div>
+    <div id="lbTableBody">
+      <div class="skel" style="height:60px;margin:8px;border-radius:10px;"></div>
+      <div class="skel" style="height:60px;margin:8px;border-radius:10px;"></div>
+      <div class="skel" style="height:60px;margin:8px;border-radius:10px;"></div>
+      <div class="skel" style="height:60px;margin:8px;border-radius:10px;"></div>
+      <div class="skel" style="height:60px;margin:8px;border-radius:10px;"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-links">
+    <a href="mailto:klstudyhub45@gmail.com" class="footer-link email" target="_blank"><span>📧</span> klstudyhub45@gmail.com</a>
+    <a href="https://www.instagram.com/hemanth_paladugula" class="footer-link insta" target="_blank"><span>📸</span> @hemanth_paladugula</a>
+  </div>
+  KL Study Hub © 2026 · Built by students, for students
+</footer>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const { createClient } = supabase;
+const client = createClient("https://jkgkswsiunpzwnurqvjq.supabase.co","sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8");
+
+const user = JSON.parse(localStorage.getItem("user"));
+if(!user) window.location="index.html";
+
+const YEAR_NAMES={"1":"1st Year","2":"2nd Year","3":"3rd Year","4":"4th Year"};
+const LEVEL_DATA=[
+  {name:"Seedling",icon:"🌱"},{name:"Sprout",icon:"🌿"},{name:"Sapling",icon:"🌳"},
+  {name:"Tree",icon:"🌲"},{name:"Star",icon:"⭐"},{name:"Super Star",icon:"🌟"},
+  {name:"Champion",icon:"💫"},{name:"Diamond",icon:"💎"},{name:"Elite",icon:"👑"},{name:"Legend",icon:"🚀"}
+];
+
+const AVATAR_COLORS=[
+  "linear-gradient(135deg,#00f5c4,#00c9a7)",
+  "linear-gradient(135deg,#5b8fff,#3a6fd8)",
+  "linear-gradient(135deg,#b57bff,#8a4fff)",
+  "linear-gradient(135deg,#ff9f43,#e67e22)",
+  "linear-gradient(135deg,#ff5b5b,#cc3333)",
+  "linear-gradient(135deg,#f5c842,#e6a817)",
+];
+
+let allStudents=[], myBadgeCount=0, currentFilter="all";
+
+async function load(){
+  // Get all students sorted by points
+  const{data}=await client.from("users").select("id_no,name,branch,year,points,level,streak_count,longest_streak,role").eq("status","approved").not("role","in","(admin,ultra_admin,coadmin)").order("points",{ascending:false});
+  allStudents=data||[];
+
+  // Get my badge count
+  const{data:bd}=await client.from("badges_earned").select("id").eq("user_id",user.id_no);
+  myBadgeCount=bd?.length||0;
+
+  renderMyRank();
+  renderLeaderboard();
+
+  // Auto-refresh every 30 seconds
+  setInterval(async()=>{
+    const{data:fresh}=await client.from("users").select("id_no,name,branch,year,points,level,streak_count,longest_streak,role").eq("status","approved").not("role","in","(admin,ultra_admin,coadmin)").order("points",{ascending:false});
+    if(fresh){allStudents=fresh;renderMyRank();renderLeaderboard();}
+  },30000);
+}
+
+function setFilter(type,el){
+  currentFilter=type;
+  document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  if(type==="branch") document.getElementById("branchSelect").value=user.branch;
+  if(type==="year") document.getElementById("yearSelect").value=user.year||"all";
+  renderLeaderboard();
+}
+
+function getFiltered(){
+  let f=allStudents;
+  if(currentFilter==="branch") f=f.filter(s=>s.branch===user.branch);
+  if(currentFilter==="year") f=f.filter(s=>s.year===user.year);
+  // Also apply dropdown filters
+  const br=document.getElementById("branchSelect").value;
+  const yr=document.getElementById("yearSelect").value;
+  if(br!=="all" && currentFilter==="all") f=f.filter(s=>s.branch===br);
+  if(yr!=="all" && currentFilter==="all") f=f.filter(s=>s.year===yr);
+  return f;
+}
+
+function renderMyRank(){
+  const filtered=getFiltered();
+  const myIdx=filtered.findIndex(s=>s.id_no===user.id_no);
+  const myRank=myIdx===-1?"—":myIdx+1;
+  const myData=allStudents.find(s=>s.id_no===user.id_no)||user;
+
+  document.getElementById("myRankNum").textContent=myRank==="—"?"#—":`#${myRank}`;
+  document.getElementById("myRankTitle").textContent=myRank==="—"?"Not ranked yet":`You are ranked #${myRank}`;
+  document.getElementById("myRankSub").textContent=`${myData.branch||user.branch}${myData.year?" · "+YEAR_NAMES[myData.year]:""} · ${(myData.points||0).toLocaleString()} points`;
+  document.getElementById("myPts").textContent=(myData.points||0).toLocaleString();
+  document.getElementById("myStreak").textContent=myData.streak_count||0;
+  document.getElementById("myBadges").textContent=myBadgeCount;
+}
+
+function renderLeaderboard(){
+  const filtered=getFiltered();
+  renderPodium(filtered.slice(0,3));
+  renderTable(filtered);
+  renderMyRank();
+}
+
+function getAvatarColor(id){return AVATAR_COLORS[id.charCodeAt(0)%AVATAR_COLORS.length];}
+function getLevelData(lvl){return LEVEL_DATA[Math.min((lvl||1)-1,9)];}
+function getDisplayName(s){return s.name||s.id_no;}
+
+function renderPodium(top3){
+  const podium=document.getElementById("podium");
+  if(!top3.length){podium.innerHTML=`<div class="empty"><div class="ei">🏆</div>No students yet</div>`;return;}
+
+  const makeItem=(s,pos,cls)=>{
+    if(!s) return `<div class="podium-item ${cls}" style="opacity:0.3"><div class="podium-base ${cls}"><div class="podium-base-num">${pos}</div></div></div>`;
+    const lvl=getLevelData(s.level);
+    const isMe=s.id_no===user.id_no;
+    const crowns=["👑","🥈","🥉"];
+    return `<div class="podium-item ${cls}">
+      <div class="podium-rank">${crowns[pos-1]}</div>
+      <div class="podium-avatar" style="background:${getAvatarColor(s.id_no)};">
+        ${getDisplayName(s).charAt(0).toUpperCase()}
+        ${isMe?`<div style="position:absolute;top:-8px;right:-8px;background:var(--primary);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#04060d;font-weight:800;">✓</div>`:""}
+      </div>
+      <div class="podium-name">${getDisplayName(s)}${isMe?" (You)":""}</div>
+      <div class="podium-branch">${s.branch}${s.year?" · "+YEAR_NAMES[s.year]:""}</div>
+      <div class="podium-pts">${(s.points||0).toLocaleString()} pts</div>
+      <div class="podium-level">${lvl.icon} ${lvl.name}</div>
+      <div class="podium-base ${cls}"><div class="podium-base-num">${pos}</div></div>
+    </div>`;
+  };
+
+  // Order: 2nd, 1st, 3rd
+  podium.innerHTML=`
+    ${makeItem(top3[1],2,'p2')}
+    ${makeItem(top3[0],1,'p1')}
+    ${makeItem(top3[2],3,'p3')}
+  `;
+}
+
+function renderTable(filtered){
+  const body=document.getElementById("lbTableBody");
+  if(!filtered.length){body.innerHTML=`<div class="empty"><div class="ei">📭</div>No students found for this filter.</div>`;return;}
+
+  // Show from rank 4 onwards in table (top 3 in podium)
+  const tableRows=filtered.slice(0);
+
+  body.innerHTML=tableRows.map((s,i)=>{
+    const rank=i+1;
+    const isMe=s.id_no===user.id_no;
+    const lvl=getLevelData(s.level);
+    const rankClass=rank===1?"rank-1":rank===2?"rank-2":rank===3?"rank-3":"rank-other";
+    const rowClass=isMe?"me":rank===1?"top1":rank===2?"top2":rank===3?"top3":"";
+    const rankEmoji=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank;
+
+    return `<div class="lb-row ${rowClass}">
+      <div class="rank-num ${rankClass}">${rankEmoji}</div>
+      <div class="user-cell">
+        <div class="lb-avatar" style="background:${getAvatarColor(s.id_no)};color:${rank<=3?"#04060d":"white"};">
+          ${getDisplayName(s).charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <div class="lb-user-name">${getDisplayName(s)} ${isMe?'<span class="me-tag">YOU</span>':''}</div>
+          <div class="lb-user-sub">
+            <span>${s.branch}</span>
+            ${s.year?`<span>·</span><span>${YEAR_NAMES[s.year]}</span>`:""}
+          </div>
+        </div>
+      </div>
+      <div class="level-cell">
+        <div class="level-icon-sm">${lvl.icon}</div>
+        <div class="level-name-sm">${lvl.name}</div>
+      </div>
+      <div class="streak-cell" style="text-align:center;">🔥 ${s.streak_count||0}</div>
+      <div class="pts-cell">${(s.points||0).toLocaleString()}</div>
+    </div>`;
+  }).join("");
+}
+
+function showToast(msg){const t=document.createElement("div");t.className="toast";t.innerHTML=`<div class="toast-icon">✓</div><div class="toast-msg">${msg}</div><div class="toast-bar"></div>`;document.getElementById("toastWrap").appendChild(t);setTimeout(()=>{t.classList.add("hiding");t.addEventListener("animationend",()=>t.remove());},3000);}
+
+load();
+</script>
+</body>
+</html>
