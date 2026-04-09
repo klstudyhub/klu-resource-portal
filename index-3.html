@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>📚</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KL Study Hub</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04060d;--primary:#00f5c4;--primary-dim:rgba(0,245,196,0.08);
+  --gold:#f5c842;--gold-dim:rgba(245,200,66,0.10);
+  --blue:#5b8fff;--blue-dim:rgba(91,143,255,0.10);
+  --text:#dde6f0;--muted:rgba(221,230,240,0.45);
+  --card-bg:rgba(255,255,255,0.025);--card-border:rgba(255,255,255,0.07);
+  --input-bg:rgba(0,0,0,0.35);--error:#ff5b5b;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px;overflow-x:hidden;}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,245,196,0.12) 0%,transparent 70%);top:-200px;left:-200px;animation:oF1 18s ease-in-out infinite alternate;}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(245,200,66,0.10) 0%,transparent 70%);bottom:-150px;right:-100px;animation:oF2 22s ease-in-out infinite alternate;}
+@keyframes oF1{from{transform:translate(0,0)}to{transform:translate(80px,60px)}}
+@keyframes oF2{from{transform:translate(0,0)}to{transform:translate(-60px,-80px)}}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,245,196,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,196,0.025) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);}
+.scene{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:460px;animation:sceneIn 0.9s ease both;}
+@keyframes sceneIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.logo-area{text-align:center;margin:20px 0 24px;}
+.logo-badge{display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 10px;border:1px solid rgba(0,245,196,0.2);border-radius:50px;background:rgba(0,245,196,0.05);margin-bottom:14px;}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 10px var(--primary);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.logo-badge span{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--primary);}
+.logo-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-1px;}
+.logo-title .acc{color:var(--primary);}
+.logo-sub{font-size:13px;color:var(--muted);margin-top:6px;}
+/* QUOTE */
+.quote-box{background:rgba(0,245,196,0.04);border:1px solid rgba(0,245,196,0.1);border-radius:14px;padding:14px 18px;margin-bottom:20px;width:100%;position:relative;}
+.quote-box::before{content:'"';position:absolute;top:-10px;left:12px;font-size:60px;color:rgba(0,245,196,0.1);font-family:Georgia,serif;line-height:1;}
+.qt{font-size:13px;color:rgba(221,230,240,0.8);line-height:1.6;font-style:italic;padding-left:8px;}
+.qa{font-size:11px;color:var(--primary);margin-top:6px;font-weight:600;padding-left:8px;}
+.qnav{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;}
+.qnb{width:24px;height:24px;border-radius:6px;background:var(--primary-dim);border:1px solid rgba(0,245,196,0.2);color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.2s;background:none;font-family:inherit;}
+.qnb:hover{background:rgba(0,245,196,0.15);}
+/* CARD */
+.card{width:100%;background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;backdrop-filter:blur(24px);padding:32px 28px 28px;box-shadow:0 24px 64px rgba(0,0,0,0.55);position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--primary),transparent);opacity:0.5;}
+.panel{display:none;}
+.panel.active{display:block;animation:panelIn 0.35s ease both;}
+@keyframes panelIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.steps{display:flex;gap:6px;margin-bottom:20px;}
+.step{height:3px;border-radius:2px;background:var(--card-border);flex:1;transition:background 0.4s;}
+.step.done{background:var(--primary);}
+.ph{margin-bottom:20px;}
+.ph h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px;}
+.ph p{font-size:13px;color:var(--muted);}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:12px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;}
+.opt-label{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.opt-badge{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--gold-dim);color:var(--gold);font-weight:600;}
+input,select{width:100%;padding:11px 14px;background:var(--input-bg);border:1px solid var(--card-border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;appearance:none;transition:border-color 0.25s,box-shadow 0.25s;}
+input::placeholder{color:rgba(221,230,240,0.25);}
+input:focus,select:focus{border-color:rgba(0,245,196,0.5);box-shadow:0 0 0 3px rgba(0,245,196,0.08);background:rgba(0,245,196,0.04);}
+select option{background:#0d1117;}
+.privacy-note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--blue-dim);border:1px solid rgba(91,143,255,0.15);border-radius:8px;margin-top:6px;font-size:12px;color:rgba(221,230,240,0.7);line-height:1.5;}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;margin-top:6px;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),#00c9a7);color:#04060d;box-shadow:0 4px 20px rgba(0,245,196,0.25);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,245,196,0.38);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--card-border);font-size:13px;margin-top:10px;}
+.btn-ghost:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.btn-loading{pointer-events:none;opacity:0.7;}
+.btn-loading::before{content:'';position:absolute;width:18px;height:18px;border:2px solid rgba(0,0,0,0.3);border-top-color:#04060d;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.btn-loading .btn-text{opacity:0;}
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--muted);font-size:12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--card-border);}
+/* TERMS */
+.terms-box{height:130px;overflow-y:auto;background:rgba(0,0,0,0.3);border:1px solid var(--card-border);border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.7;color:rgba(221,230,240,0.65);margin-bottom:14px;scrollbar-width:thin;scrollbar-color:rgba(0,245,196,0.3) transparent;}
+.terms-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.cb-row{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--primary-dim);border:1px solid rgba(0,245,196,0.2);border-radius:10px;margin-bottom:4px;cursor:pointer;transition:all 0.2s;}
+.cb-row:hover{background:rgba(0,245,196,0.14);}
+.cb-wrap{position:relative;width:22px;height:22px;flex-shrink:0;}
+.cb-wrap input{position:absolute;opacity:0;width:0;height:0;}
+.cb-box{width:22px;height:22px;border-radius:6px;border:2px solid rgba(0,245,196,0.4);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;transition:all 0.2s;cursor:pointer;}
+.cb-wrap input:checked+.cb-box{background:var(--primary);border-color:var(--primary);box-shadow:0 0 12px rgba(0,245,196,0.4);}
+.cb-box::after{content:'';width:6px;height:10px;border:2px solid #04060d;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);opacity:0;transition:opacity 0.15s;}
+.cb-wrap input:checked+.cb-box::after{opacity:1;}
+.cb-label{font-size:13.5px;font-weight:500;color:var(--text);cursor:pointer;}
+.cb-label span{color:var(--primary);}
+.note{background:var(--gold-dim);border:1px solid rgba(245,200,66,0.15);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(245,200,66,0.85);line-height:1.6;margin-top:14px;display:flex;gap:8px;}
+/* LOGIN NOTE */
+.login-note{margin-top:20px;background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:14px;padding:18px 20px;font-size:12.5px;color:rgba(221,230,240,0.6);line-height:1.8;width:100%;}
+.ln-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.login-note b{color:var(--primary);}
+.login-note a{color:var(--primary);text-decoration:none;}
+.ln-sig{margin-top:12px;font-size:13px;color:var(--primary);font-weight:600;}
+/* ABOUT */
+.about-section{margin-top:20px;background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:14px;padding:20px;width:100%;}
+.about-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;}
+.about-text{font-size:13px;color:rgba(221,230,240,0.65);line-height:1.8;}
+.about-text .hl{color:var(--primary);font-weight:600;}
+/* FOOTER */
+.page-footer{margin-top:24px;text-align:center;width:100%;}
+.footer-links{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.fl{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:25px;background:rgba(255,255,255,0.025);border:1px solid var(--card-border);text-decoration:none;font-size:13px;font-weight:500;transition:all 0.2s;}
+.fl.email{color:var(--primary);}
+.fl.email:hover{background:var(--primary-dim);border-color:rgba(0,245,196,0.3);}
+.fl.insta{color:#e1306c;}
+.fl.insta:hover{background:rgba(225,48,108,0.08);border-color:rgba(225,48,108,0.3);}
+.footer-copy{font-size:12px;color:var(--muted);}
+/* TOAST */
+.tw{position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;}
+.toast{display:flex;align-items:center;gap:12px;padding:13px 18px;border-radius:12px;background:rgba(10,14,26,0.92);backdrop-filter:blur(16px);border:1px solid var(--card-border);border-left:3px solid;box-shadow:0 12px 40px rgba(0,0,0,0.45);min-width:240px;animation:toastIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);position:relative;overflow:hidden;}
+.toast.s{border-left-color:var(--primary);}
+.toast.e{border-left-color:var(--error);}
+.toast.hiding{animation:toastOut 0.35s ease-in forwards;}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{to{transform:translateX(110%);opacity:0}}
+.ti{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.toast.s .ti{background:rgba(0,245,196,0.15);color:var(--primary);}
+.toast.e .ti{background:rgba(255,91,91,0.15);color:var(--error);}
+.tm{font-size:13px;font-weight:500;line-height:1.4;}
+.tb{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:bS 3s linear forwards;}
+.toast.s .tb{background:var(--primary);}
+.toast.e .tb{background:var(--error);}
+@keyframes bS{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media(max-width:440px){.card{padding:24px 18px;}.logo-title{font-size:30px;}.field-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="grid-overlay"></div>
+
+<div class="scene">
+  <div class="logo-area">
+    <div class="logo-badge"><div class="logo-dot"></div><span>Academic Portal</span></div>
+    <div class="logo-title">KL <span class="acc">STUDY HUB</span></div>
+    <div class="logo-sub">Your gateway to shared knowledge</div>
+  </div>
+
+  <div class="quote-box">
+    <div class="qt" id="qText">Loading quote...</div>
+    <div class="qa" id="qAuth"></div>
+    <div class="qnav">
+      <button class="qnb" onclick="prevQ()">←</button>
+      <button class="qnb" onclick="nextQ()">→</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- LOGIN -->
+    <div id="pLogin" class="panel active">
+      <div class="steps"><div class="step done"></div></div>
+      <div class="ph"><h2>Welcome back</h2><p>Sign in with your student credentials</p></div>
+      <div class="field"><label>Student ID</label><input id="lId" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-primary" id="btnLogin" onclick="doLogin()"><span class="btn-text">Sign In</span></button>
+      <div class="divider">or</div>
+      <button class="btn btn-ghost" onclick="show('pTerms')">Create New Account</button>
+    </div>
+
+    <!-- TERMS -->
+    <div id="pTerms" class="panel">
+      <div class="steps"><div class="step done"></div><div class="step"></div></div>
+      <div class="ph"><h2>Terms & Conditions</h2><p>Please read carefully before creating your account</p></div>
+      <div class="terms-box">
+        <div class="terms-title">KL Study Hub – Terms & Conditions</div>
+        Only valid students with approved IDs are allowed to use this platform.<br><br>
+        Users must keep login credentials secure. Sharing credentials is strictly discouraged.<br><br>
+        Do not upload harmful, illegal, or copyrighted content without permission.<br><br>
+        Admins reserve the right to approve, reject, or remove users and resources at any time.<br><br>
+        This platform is provided for academic use only. By continuing, you agree to all terms.
+      </div>
+      <label class="cb-row" for="cbAgree">
+        <div class="cb-wrap">
+          <input type="checkbox" id="cbAgree">
+          <div class="cb-box"></div>
+        </div>
+        <div class="cb-label">I have read and agree to all <span>Terms & Conditions</span></div>
+      </label>
+      <button class="btn btn-primary" onclick="goToForm()" style="margin-top:16px;"><span class="btn-text">Continue →</span></button>
+      <button class="btn btn-ghost" onclick="show('pLogin')">← Back to Login</button>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="pForm" class="panel">
+      <div class="steps"><div class="step done"></div><div class="step done"></div></div>
+      <div class="ph"><h2>Create Account</h2><p>Fill in your details to request access</p></div>
+      <div class="field">
+        <div class="opt-label"><label style="margin-bottom:0;">Full Name</label><span class="opt-badge">Optional</span></div>
+        <input id="sName" placeholder="e.g. Hemanth Paladugula">
+        <div class="privacy-note">
+          <span>ℹ️</span>
+          <span>If you enter your name, it will be <b>visible to all students</b> on leaderboard and comments. Leave blank to show only your Student ID.</span>
+        </div>
+      </div>
+      <div class="field"><label>Student ID *</label><input id="sId" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
+      <div class="field"><label>Password *</label><input id="sPass" type="password" placeholder="Choose a strong password" autocomplete="new-password"></div>
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0;">
+          <label>Branch *</label>
+          <select id="sBranch">
+            <option value="CSE">CSE</option><option value="ECE">ECE</option>
+            <option value="EEE">EEE</option><option value="AIDS">AIDS</option><option value="CSIT">CSIT</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Year *</label>
+          <select id="sYear">
+            <option value="1">1st Year</option><option value="2">2nd Year</option>
+            <option value="3">3rd Year</option><option value="4">4th Year</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnSignup" onclick="doSignup()" style="margin-top:16px;"><span class="btn-text">Submit Request</span></button>
+      <div class="note"><span>⏳</span><span>Admin approval takes up to 12 hours. Once approved, log in using the Student ID and Password you entered.</span></div>
+      <button class="btn btn-ghost" onclick="show('pLogin')">← Back to Login</button>
+    </div>
+  </div>
+
+  <!-- LOGIN NOTE -->
+  <div class="login-note">
+    <div class="ln-title">👋 A note from the founder</div>
+    Hi, I'm <b>Hemanth</b>.<br><br>
+    KL Study Hub is a student-led platform, founded by <b>Praveen Reddy</b>, created to help students easily access academic resources — especially during exams, when finding the right materials can be challenging.<br><br>
+    We are students of <b>KL University (Y25)</b>, and this initiative is built to support our peers and grow together through shared learning.<br><br>
+    For faculty reviewing this platform: this is a <b>genuine student initiative</b> for academic support. It is not an official institutional website.<br><br>
+    For questions: <a href="/cdn-cgi/l/email-protection#7d16110e0908190415081f49483d1a101c1411531e1210"><span class="__cf_email__" data-cfemail="b2d9dec1c6c7d6cbdac7d08687f2d5dfd3dbde9cd1dddf">[email&#160;protected]</span></a>
+    <div class="ln-sig">— Hemanth &amp; Praveen Reddy</div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="about-section">
+    <div class="about-title">📖 About KL Study Hub</div>
+    <div class="about-text">
+      KL Study Hub was created with a simple idea — to make academic resources easier to access for every student.<br><br>
+      During exams, students often struggle to find the right materials at the right time. This platform organizes useful resources in one place, making learning more efficient and less stressful.<br><br>
+      Developed by <span class="hl">students of KL University (Y25)</span>, KL Study Hub reflects our effort to create a system that benefits every student who needs quick and reliable access to study materials.<br><br>
+      <span class="hl">Built by students, for students.</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div class="footer-links">
+      <a href="/cdn-cgi/l/email-protection#7a1116090e0f1e03120f184e4f3a1d171b131654191517" class="fl email" target="_blank">📧 <span class="__cf_email__" data-cfemail="2843445b5c5d4c51405d4a1c1d684f45494144064b4745">[email&#160;protected]</span></a>
+      <a href="https://www.instagram.com/hemanth_paladugula" class="fl insta" target="_blank">📸 @hemanth_paladugula</a>
+      <a href="https://www.instagram.com/praveen_retotal_13" class="fl insta" target="_blank">📸 @praveen_retotal_13</a>
+    </div>
+    <div class="footer-copy">KL Study Hub © 2026 · Built by students, for students</div>
+  </div>
+</div>
+
+<div class="tw" id="tw"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const SB_URL = "https://jkgkswsiunpzwnurqvjq.supabase.co";
+const SB_KEY = "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8";
+const { createClient } = supabase;
+const db = createClient(SB_URL, SB_KEY);
+
+// QUOTES
+const QUOTES = [
+  {t:"The quieter you become, the more you can hear.",a:"— Kali Linux Motto"},
+  {t:"Security is not a product, but a process.",a:"— Bruce Schneier"},
+  {t:"In God we trust. All others we monitor.",a:"— NSA Saying"},
+  {t:"There are only two types of companies: those hacked and those that don't know yet.",a:"— John Chambers"},
+  {t:"It takes 20 years to build a reputation and minutes to ruin it with a cyber incident.",a:"— Stephane Nappo"},
+  {t:"Think like a hacker to stop a hacker.",a:"— Unknown"},
+  {t:"The stone age didn't end because we ran out of stones.",a:"— Unknown"},
+  {t:"The expert in anything was once a beginner.",a:"— Helen Hayes"},
+  {t:"The beautiful thing about learning is nobody can take it away from you.",a:"— B.B. King"},
+  {t:"Don't wish it were easier. Wish you were better.",a:"— Jim Rohn"},
+  {t:"A smooth sea never made a skilled sailor.",a:"— Franklin D. Roosevelt"},
+  {t:"Fall seven times, stand up eight.",a:"— Japanese Proverb"},
+  {t:"It always seems impossible until it's done.",a:"— Nelson Mandela"},
+  {t:"Hard work beats talent when talent doesn't work hard.",a:"— Tim Notke"},
+  {t:"In the middle of difficulty lies opportunity.",a:"— Albert Einstein"},
+  {t:"Passwords are like underwear — change them often and don't share them.",a:"— Chris Pirillo"}
+];
+let qi = parseInt(localStorage.getItem("qi")||"0");
+function showQ(i){document.getElementById("qText").textContent=QUOTES[i].t;document.getElementById("qAuth").textContent=QUOTES[i].a;}
+function nextQ(){qi=(qi+1)%QUOTES.length;localStorage.setItem("qi",qi);showQ(qi);}
+function prevQ(){qi=(qi-1+QUOTES.length)%QUOTES.length;localStorage.setItem("qi",qi);showQ(qi);}
+showQ(qi);
+
+// PANELS
+function show(id){
+  document.querySelectorAll(".panel").forEach(p=>{p.classList.remove("active");p.style.display="none";});
+  const el=document.getElementById(id);
+  el.style.display="block";
+  requestAnimationFrame(()=>el.classList.add("active"));
+}
+
+function goToForm(){
+  if(!document.getElementById("cbAgree").checked){toast("Please agree to the terms first.","e");return;}
+  show("pForm");
+}
+
+// TOAST
+function toast(msg,type="s"){
+  const tw=document.getElementById("tw");
+  const t=document.createElement("div");
+  t.className="toast "+type;
+  t.innerHTML=`<div class="ti">${type==="s"?"✓":"✕"}</div><div class="tm">${msg}</div><div class="tb"></div>`;
+  tw.appendChild(t);
+  setTimeout(()=>{t.classList.add("hiding");t.addEventListener("animationend",()=>t.remove());},3000);
+}
+
+// LEVEL CALC
+function calcLevel(p){
+  if(p>=10000)return 10;if(p>=7500)return 9;if(p>=5000)return 8;
+  if(p>=3500)return 7;if(p>=2000)return 6;if(p>=1000)return 5;
+  if(p>=600)return 4;if(p>=300)return 3;if(p>=100)return 2;return 1;
+}
+
+// LOGIN
+async function doLogin(){
+  const id=document.getElementById("lId").value.trim();
+  const pass=document.getElementById("lPass").value.trim();
+  if(!id||!pass){toast("Please enter your Student ID and Password.","e");return;}
+  const btn=document.getElementById("btnLogin");
+  btn.classList.add("btn-loading");
+  try{
+    const{data,error}=await db.from("users").select("*").eq("id_no",id).eq("password",pass).single();
+    if(error||!data){toast("Invalid Student ID or Password.","e");btn.classList.remove("btn-loading");return;}
+    if(data.status==="pending"){toast("Your account is pending admin approval.","e");btn.classList.remove("btn-loading");return;}
+    if(data.status==="blocked"){toast("Your account has been blocked. Contact admin.","e");btn.classList.remove("btn-loading");return;}
+    // Streak & points update
+    const today=new Date().toDateString();
+    const last=data.last_login?new Date(data.last_login).toDateString():null;
+    let streak=data.streak_count||0;
+    let pts=data.points||0;
+    if(last!==today){
+      const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+      streak=(last===yesterday.toDateString())?streak+1:1;
+      pts+=10;
+      if(streak===7)pts+=30;
+      if(streak===30)pts+=100;
+      const lvl=calcLevel(pts);
+      await db.from("users").update({last_login:new Date().toISOString(),streak_count:streak,longest_streak:Math.max(streak,data.longest_streak||0),points:pts,level:lvl}).eq("id_no",id);
+      data.streak_count=streak;data.points=pts;data.level=lvl;
+    }
+    toast("Login successful! Redirecting…","s");
+    localStorage.setItem("user",JSON.stringify(data));
+    setTimeout(()=>{
+      const role=data.role;
+      if(role==="admin"||role==="ultra_admin"||role==="coadmin"){window.location.href="admin.html";}
+      else{window.location.href="dashboard.html";}
+    },900);
+  }catch(err){
+    console.error("Login error:",err);
+    toast("Something went wrong. Please try again.","e");
+    btn.classList.remove("btn-loading");
+  }
+}
+
+// SIGNUP
+async function doSignup(){
+  const name=document.getElementById("sName").value.trim();
+  const id=document.getElementById("sId").value.trim();
+  const pass=document.getElementById("sPass").value.trim();
+  const branch=document.getElementById("sBranch").value;
+  const year=document.getElementById("sYear").value;
+  if(!id||!pass){toast("Please fill in Student ID and Password.","e");return;}
+  if(pass.length<6){toast("Password must be at least 6 characters.","e");return;}
+  const btn=document.getElementById("btnSignup");
+  btn.classList.add("btn-loading");
+  try{
+    // Check if already exists
+    const{data:existing}=await db.from("users").select("id_no").eq("id_no",id).single();
+    if(existing){toast("Student ID already registered.","e");btn.classList.remove("btn-loading");return;}
+    const row={id_no:id,password:pass,branch,year,role:"user",status:"pending",points:0,level:1,streak_count:0,longest_streak:0};
+    if(name)row.name=name;
+    const{error}=await db.from("users").insert([row]);
+    if(error){toast("Registration failed: "+error.message,"e");btn.classList.remove("btn-loading");return;}
+    toast("Request submitted! Awaiting admin approval.","s");
+    document.getElementById("sId").value="";
+    document.getElementById("sPass").value="";
+    document.getElementById("sName").value="";
+    document.getElementById("cbAgree").checked=false;
+    setTimeout(()=>show("pLogin"),1600);
+  }catch(err){
+    console.error("Signup error:",err);
+    toast("Somet
