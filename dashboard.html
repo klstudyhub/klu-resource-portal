@@ -510,7 +510,7 @@ footer{text-align:center;padding:20px;border-top:1px solid var(--border);font-si
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const SB_URL="https://jkgkswsiunpzwnurqvjq.supabase.co";
-const SB_KEY="sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprZ2tzd3NpdW5wendudXJxdmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjY4NTIsImV4cCI6MjA4OTM0Mjg1Mn0.01pNdW9h6paJh8m289dtXVQxjRe9QnHB8bSp7P77Rg8";
 const{createClient}=supabase;
 const db=createClient(SB_URL,SB_KEY);
 
@@ -584,39 +584,46 @@ showDQ(dqi);
 
 let allData=[],favs=JSON.parse(localStorage.getItem("fav")||"[]"),recents=JSON.parse(localStorage.getItem("recent")||"[]"),myRatings=JSON.parse(localStorage.getItem("ratings")||"{}"),activeResId=null;
 
+
 // LOAD DATA
 async function loadData(){
   try{
-    const[rRes,rAnn]=await Promise.all([
+    const [rRes, rAnn] = await Promise.all([
       db.from("resources").select("*"),
       db.from("announcements").select("*").order("created_at",{ascending:false})
     ]);
-    allData=rRes.data||[];
-    if(userYear)allData=allData.filter(r=>!r.year||r.year===userYear);
+
+    allData = rRes.data || [];
+
+    if(userYear)
+      allData = allData.filter(r => !r.year || r.year === userYear);
+
     updateStats();
-    renderAnn(rAnn.data||[]);
+    renderAnn(rAnn.data || []);
     renderPinned();
     renderBranches();
     renderFeed();
     renderFavs();
     renderRecent();
+
   }catch(err){
-    console.error("Load error:",err);
+    console.error("Load error:", err);
     toast("Failed to load data. Check connection.","e");
   }
 }
- 
 
-function isPdf(l){return l&&l.toLowerCase().includes(".pdf");}
-function updateStats(){
-  document.getElementById("stTotal").textContent=allData.length;
-  document.getElementById("stFav").textContent=favs.length;
-  document.getElementById("stRec").textContent=recents.length;
-  document.getElementById("favCnt").textContent=favs.length;
-  document.getElementById("recCnt").textContent=recents.length;
-  loadData();
+function isPdf(l){
+  return l && l.toLowerCase().includes(".pdf");
 }
 
+function updateStats(){
+  document.getElementById("stTotal").textContent = allData.length;
+  document.getElementById("stFav").textContent = favs.length;
+  document.getElementById("stRec").textContent = recents.length;
+  document.getElementById("favCnt").textContent = favs.length;
+  document.getElementById("recCnt").textContent = recents.length;
+}
+loadData();
 // ANNOUNCEMENTS
 function renderAnn(anns){
   const g=document.getElementById("annGrid");
