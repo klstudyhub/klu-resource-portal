@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>📚</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KL Study Hub — Dashboard</title>
+<title>KL Study Hubb — Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -605,6 +605,7 @@ async function loadData(){
     toast("Failed to load data. Check connection.","e");
   }
 }
+  loadData();
 
 function isPdf(l){return l&&l.toLowerCase().includes(".pdf");}
 function updateStats(){
