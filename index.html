@@ -3,536 +3,474 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:,">
-<title>KL Study Hub</title>
+<meta name="description" content="KL Study Hub — The premium academic portal for KL University students.">
+<meta name="theme-color" content="#03050a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<title>KL Study Hub — Academic Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #04060d;
-  --primary: #00f5c4; --primary-dim: rgba(0,245,196,0.08); --primary-glow: rgba(0,245,196,0.18);
-  --gold: #f5c842; --gold-dim: rgba(245,200,66,0.10);
-  --text: #dde6f0; --muted: rgba(221,230,240,0.45);
-  --card-bg: rgba(255,255,255,0.025); --card-border: rgba(255,255,255,0.07);
-  --input-bg: rgba(0,0,0,0.35); --error: #ff5b5b; --success: #00f5c4;
-  --blue: #5b8fff; --blue-dim: rgba(91,143,255,0.10);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#03050a;
+  --s1:#070c16;
+  --card:rgba(255,255,255,0.024);
+  --card2:rgba(255,255,255,0.042);
+  --border:rgba(255,255,255,0.058);
+  --border-p:rgba(0,245,180,0.24);
+ 
+  --p:#00f5b4;
+  --p2:#00d4ff;
+  --pd:rgba(0,245,180,0.07);
+  --pg:rgba(0,245,180,0.14);
+ 
+  --gold:#ffd166;
+  --goldd:rgba(255,209,102,0.09);
+  --rose:#ff6b9d;
+  --blue:#5b9fff;
+  --blued:rgba(91,159,255,0.09);
+ 
+  --tx:#e5edf8;
+  --mu:rgba(229,237,248,0.38);
+  --su:rgba(229,237,248,0.17);
+ 
+  --r:18px; --rs:12px; --rp:999px;
+  --fd:'Space Grotesk',sans-serif;
+  --fh:'Orbitron',sans-serif;
+  --eo:cubic-bezier(0.16,1,0.3,1);
+  --sp:cubic-bezier(0.34,1.56,0.64,1);
 }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-x: hidden; padding: 20px 16px 60px; }
-
-/* ORBS */
-.orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
-.orb1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,245,196,0.12) 0%, transparent 70%); top: -200px; left: -200px; animation: orbReveal 2s 0.2s ease forwards, orbFloat1 18s 2.2s ease-in-out infinite alternate; opacity: 0; }
-.orb2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(245,200,66,0.10) 0%, transparent 70%); bottom: -150px; right: -100px; animation: orbReveal 2s 0.5s ease forwards, orbFloat2 22s 2.5s ease-in-out infinite alternate; opacity: 0; }
-.orb3 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(80,120,255,0.09) 0%, transparent 70%); top: 50%; right: 20%; animation: orbReveal 2s 0.8s ease forwards, orbFloat3 15s 2.8s ease-in-out infinite alternate; opacity: 0; }
-@keyframes orbReveal { to { opacity: 1; } }
-@keyframes orbFloat1 { from{transform:translate(0,0)} to{transform:translate(80px,60px)} }
-@keyframes orbFloat2 { from{transform:translate(0,0)} to{transform:translate(-60px,-80px)} }
-@keyframes orbFloat3 { from{transform:translate(0,0)} to{transform:translate(40px,-50px)} }
-.grid-overlay { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(0,245,196,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,196,0.025) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%); }
-
-/* SCENE */
-.scene { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 460px; animation: sceneIn 0.9s cubic-bezier(0.23,1,0.32,1) forwards; opacity: 0; transform: translateY(30px); }
-@keyframes sceneIn { to { opacity: 1; transform: translateY(0); } }
-
-/* LOGO */
-.logo-area { text-align: center; margin-bottom: 24px; margin-top: 20px; }
-.logo-badge { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 10px; border: 1px solid rgba(0,245,196,0.2); border-radius: 50px; background: rgba(0,245,196,0.05); margin-bottom: 14px; }
-.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-.logo-badge span { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--primary); }
-.logo-title { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
-.logo-title .accent { color: var(--primary); }
-.logo-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
-
-/* QUOTE BOX */
-.quote-box { background: rgba(0,245,196,0.04); border: 1px solid rgba(0,245,196,0.1); border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; width: 100%; position: relative; overflow: hidden; }
-.quote-box::before { content: '"'; position: absolute; top: -10px; left: 12px; font-size: 60px; color: rgba(0,245,196,0.1); font-family: Georgia, serif; line-height: 1; }
-.quote-text { font-size: 13px; color: rgba(221,230,240,0.8); line-height: 1.6; font-style: italic; padding-left: 8px; }
-.quote-author { font-size: 11px; color: var(--primary); margin-top: 6px; font-weight: 600; padding-left: 8px; }
-.quote-nav { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
-.quote-nav-btn { width: 24px; height: 24px; border-radius: 6px; background: var(--primary-dim); border: 1px solid rgba(0,245,196,0.2); color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.2s; }
-.quote-nav-btn:hover { background: rgba(0,245,196,0.15); }
-
-/* CARD */
-.card { width: 100%; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 32px 28px 28px; box-shadow: 0 0 0 1px rgba(0,245,196,0.06), 0 24px 64px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); position: relative; overflow: hidden; }
-.card::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.5; }
-
-/* PANELS */
-.panel { display: none; animation: panelIn 0.35s cubic-bezier(0.23,1,0.32,1) forwards; opacity: 0; transform: translateX(16px); }
-.panel.active { display: block; }
-@keyframes panelIn { to { opacity: 1; transform: translateX(0); } }
-
-/* PANEL HEADER */
-.panel-header { margin-bottom: 20px; }
-.panel-header h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-.panel-header p { font-size: 13px; color: var(--muted); }
-
-/* STEPS */
-.steps { display: flex; gap: 6px; margin-bottom: 20px; }
-.step { height: 3px; border-radius: 2px; background: var(--card-border); flex: 1; transition: background 0.4s; }
-.step.done { background: var(--primary); }
-
-/* FIELDS */
-.field { margin-bottom: 13px; }
-.field label { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 13px; }
-.field-optional { display: flex; align-items: center; gap: 6px; }
-.field-optional-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--gold-dim); color: var(--gold); font-weight: 600; }
-
-input, select { width: 100%; padding: 11px 14px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; transition: border-color 0.25s, box-shadow 0.25s; outline: none; appearance: none; -webkit-appearance: none; }
-input::placeholder { color: rgba(221,230,240,0.25); }
-input:focus, select:focus { border-color: rgba(0,245,196,0.5); box-shadow: 0 0 0 3px rgba(0,245,196,0.08); background: rgba(0,245,196,0.04); }
-select option { background: #0d1117; color: var(--text); }
-
-/* NAME PRIVACY NOTE */
-.privacy-note { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: var(--blue-dim); border: 1px solid rgba(91,143,255,0.15); border-radius: 8px; margin-top: 6px; font-size: 12px; color: rgba(221,230,240,0.7); line-height: 1.5; }
-.privacy-note .pi { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-/* BUTTONS */
-.btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
-.btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(255,255,255,0.1), transparent); opacity: 0; transition: opacity 0.2s; }
-.btn:hover::after { opacity: 1; }
-.btn-primary { background: linear-gradient(135deg, var(--primary) 0%, #00c9a7 100%); color: #04060d; box-shadow: 0 4px 20px rgba(0,245,196,0.25); margin-top: 6px; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,245,196,0.38); }
-.btn-primary:active { transform: translateY(0) scale(0.98); }
-.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--card-border); margin-top: 10px; font-size: 13px; }
-.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); }
-.btn-loading { pointer-events: none; opacity: 0.7; }
-.btn-loading .btn-text { opacity: 0; }
-.btn-loading::before { content: ''; position: absolute; width: 18px; height: 18px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #04060d; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
-
-/* DIVIDER */
-.divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted); font-size: 12px; }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
-
-/* TERMS */
-.terms-box { height: 130px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; line-height: 1.7; color: rgba(221,230,240,0.65); margin-bottom: 14px; }
-.terms-box::-webkit-scrollbar { width: 4px; }
-.terms-box::-webkit-scrollbar-thumb { background: rgba(0,245,196,0.3); border-radius: 4px; }
-.terms-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-
-/* CHECKBOX */
-.checkbox-row { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: var(--primary-dim); border: 1px solid rgba(0,245,196,0.2); border-radius: 10px; margin-bottom: 4px; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
-.checkbox-row:hover { background: rgba(0,245,196,0.14); border-color: rgba(0,245,196,0.35); }
-.custom-checkbox { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
-.custom-checkbox input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
-.custom-checkbox .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(0,245,196,0.4); background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; }
-.custom-checkbox input:checked + .check-box { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 12px rgba(0,245,196,0.4); }
-.custom-checkbox .check-box::after { content: ''; width: 6px; height: 10px; border: 2px solid #04060d; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); opacity: 0; transition: opacity 0.15s; }
-.custom-checkbox input:checked + .check-box::after { opacity: 1; }
-.checkbox-label { font-size: 13.5px; font-weight: 500; color: var(--text); cursor: pointer; line-height: 1.4; }
-.checkbox-label span { color: var(--primary); }
-
-/* NOTE */
-.note { background: var(--gold-dim); border: 1px solid rgba(245,200,66,0.15); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: rgba(245,200,66,0.85); line-height: 1.6; margin-top: 14px; display: flex; gap: 8px; align-items: flex-start; }
-.note-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-/* LOGIN NOTE */
-.login-note { margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 14px; padding: 18px 20px; font-size: 12.5px; color: rgba(221,230,240,0.6); line-height: 1.8; width: 100%; }
-.login-note-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.login-note b { color: var(--primary); }
-.login-note a { color: var(--primary); text-decoration: none; }
-.login-note a:hover { text-decoration: underline; }
-.login-note-sig { margin-top: 12px; font-size: 13px; color: var(--primary); font-weight: 600; }
-
-/* ABOUT SECTION */
-.about-section { margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; width: 100%; }
-.about-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.about-text { font-size: 13px; color: rgba(221,230,240,0.65); line-height: 1.8; }
-.about-text .highlight { color: var(--primary); font-weight: 600; }
-
-/* FOOTER */
-.page-footer { margin-top: 24px; text-align: center; width: 100%; padding-bottom: 20px; }
-.footer-links { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
-.footer-link { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 25px; background: var(--card-bg); border: 1px solid var(--card-border); text-decoration: none; transition: all 0.2s; font-size: 13px; font-weight: 500; }
-.footer-link.email { color: var(--primary); }
-.footer-link.email:hover { background: var(--primary-dim); border-color: rgba(0,245,196,0.3); }
-.footer-link.insta { color: #e1306c; }
-.footer-link.insta:hover { background: rgba(225,48,108,0.08); border-color: rgba(225,48,108,0.3); }
-.footer-link .fl-icon { font-size: 16px; }
-.footer-copy { font-size: 12px; color: var(--muted); }
-
-/* TOAST */
-.toast-wrap { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-.toast { display: flex; align-items: center; gap: 12px; padding: 13px 18px; border-radius: 12px; background: rgba(10,14,26,0.92); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-left: 3px solid; box-shadow: 0 12px 40px rgba(0,0,0,0.45); min-width: 240px; animation: toastIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55); position: relative; overflow: hidden; }
-.toast.success { border-left-color: var(--success); }
-.toast.error { border-left-color: var(--error); }
-.toast.hiding { animation: toastOut 0.35s ease-in forwards; }
-@keyframes toastIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
-@keyframes toastOut { to{transform:translateX(110%);opacity:0} }
-.toast-icon { width: 24px; height: 24px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
-.toast.success .toast-icon { background:rgba(0,245,196,0.15); color:var(--success); }
-.toast.error .toast-icon { background:rgba(255,91,91,0.15); color:var(--error); }
-.toast-msg { font-size:13px; font-weight:500; line-height:1.4; }
-.toast-bar { position:absolute; bottom:0; left:0; height:2px; width:100%; transform-origin:left; animation:barShrink 3s linear forwards; }
-.toast.success .toast-bar { background:var(--success); }
-.toast.error .toast-bar { background:var(--error); }
-@keyframes barShrink { from{transform:scaleX(1)} to{transform:scaleX(0)} }
-
-@media(max-width:440px) { .card{padding:24px 18px;} .logo-title{font-size:30px;} .field-row{grid-template-columns:1fr;} }
-
-/* WHATSAPP CTA */
-.wa-cta { margin-top: 20px; width: 100%; background: linear-gradient(135deg, rgba(37,211,102,0.08) 0%, rgba(0,245,196,0.05) 100%); border: 1px solid rgba(37,211,102,0.2); border-radius: 16px; padding: 24px 20px; text-align: center; }
-.wa-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
-.wa-sub { font-size: 13px; color: rgba(221,230,240,0.7); line-height: 1.75; margin-bottom: 18px; }
-.wa-btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: linear-gradient(135deg, #25d366, #1da851); border-radius: 50px; text-decoration: none; color: #fff; font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; box-shadow: 0 4px 20px rgba(37,211,102,0.35); transition: all 0.25s; }
-.wa-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.5); }
-.wa-icon { font-size: 18px; }
-.wa-note { margin-top: 12px; font-size: 11.5px; color: rgba(221,230,240,0.4); }
+html{scroll-behavior:smooth;}
+body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+ 
+/* ─── BACKGROUND ─── */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-m{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 8% 12%,rgba(0,245,180,0.055) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 45% at 92% 85%,rgba(91,159,255,0.05) 0%,transparent 55%),
+    radial-gradient(ellipse 45% 35% at 55% 48%,rgba(255,209,102,0.028) 0%,transparent 55%);
+  animation:bgDrift 35s ease-in-out infinite alternate;
+}
+@keyframes bgDrift{from{transform:scale(1);}to{transform:scale(1.07) rotate(1.5deg);}}
+.bg-g{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,245,180,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,180,0.016) 1px,transparent 1px);
+  background-size:68px 68px;
+  mask-image:radial-gradient(ellipse 65% 75% at 50% 40%,black 15%,transparent 100%);
+}
+ 
+/* ─── PAGE / SCENE ─── */
+.page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:28px 18px 72px;}
+.scene{width:100%;max-width:472px;display:flex;flex-direction:column;align-items:center;animation:sceneIn 0.85s var(--eo) both;opacity:0;transform:translateY(24px);}
+@keyframes sceneIn{to{opacity:1;transform:none;}}
+ 
+/* ─── LOGO ─── */
+.logo-area{text-align:center;margin:8px 0 26px;}
+.live-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 15px 5px 9px;background:var(--pd);border:1px solid rgba(0,245,180,0.18);border-radius:var(--rp);margin-bottom:16px;animation:popIn 0.6s 0.3s var(--sp) both;opacity:0;transform:scale(0.8);}
+@keyframes popIn{to{opacity:1;transform:scale(1);}}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--p);box-shadow:0 0 10px var(--p);animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.65);}}
+.live-text{font-size:10px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--p);}
+.wordmark{font-family:var(--fh);font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1;color:#fff;margin-bottom:7px;}
+.wordmark .hollow{color:transparent;-webkit-text-stroke:1.5px var(--p);}
+.tagline{font-size:13px;color:var(--mu);letter-spacing:0.2px;}
+ 
+/* ─── QUOTE BOX ─── */
+.q-box{
+  width:100%;
+  background:rgba(91,159,255,0.04);
+  border:1px solid rgba(91,159,255,0.11);
+  border-radius:var(--rs);
+  padding:15px 50px 15px 20px;
+  margin-bottom:18px;
+  position:relative;overflow:hidden;
+}
+.q-line{position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--blue),var(--p));}
+.q-txt{font-size:12.5px;color:rgba(229,237,248,0.72);line-height:1.65;font-style:italic;transition:opacity 0.25s;}
+.q-by{font-size:11px;color:var(--blue);font-weight:600;margin-top:5px;font-style:normal;}
+.q-nav{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;}
+.q-btn{width:22px;height:22px;border-radius:6px;background:var(--blued);border:1px solid rgba(91,159,255,0.18);color:var(--blue);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all 0.18s;}
+.q-btn:hover{background:rgba(91,159,255,0.18);}
+ 
+/* ─── CARD ─── */
+.card{
+  width:100%;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:34px 30px 30px;
+  backdrop-filter:blur(28px);
+  -webkit-backdrop-filter:blur(28px);
+  position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(0,245,180,0.04),0 28px 72px rgba(0,0,0,0.58),inset 0 1px 0 rgba(255,255,255,0.055);
+  margin-bottom:18px;
+}
+.card::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,var(--p),transparent);opacity:0.38;}
+.card::after{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,180,0.035) 0%,transparent 60%);pointer-events:none;}
+ 
+/* ─── PANELS ─── */
+.panel{display:none;opacity:0;transform:translateX(14px);}
+.panel.active{display:block;animation:pIn 0.36s var(--eo) forwards;}
+@keyframes pIn{to{opacity:1;transform:none;}}
+ 
+/* Steps */
+.steps{display:flex;gap:5px;margin-bottom:22px;}
+.step{height:3px;border-radius:2px;flex:1;background:var(--border);transition:background 0.4s,transform 0.3s var(--sp);}
+.step.on{background:var(--p);transform:scaleY(1.6);}
+ 
+/* Panel header */
+.phd{margin-bottom:22px;}
+.phd h2{font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:-0.3px;color:#fff;margin-bottom:5px;}
+.phd p{font-size:13px;color:var(--mu);}
+ 
+/* ─── FIELDS ─── */
+.field{margin-bottom:13px;}
+.fl{display:block;font-size:11px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--mu);margin-bottom:7px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px;}
+.opt-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.opt-tag{font-size:9px;padding:2px 8px;border-radius:var(--rp);background:var(--goldd);color:var(--gold);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+input,select{
+  width:100%;padding:11px 14px;
+  background:rgba(0,0,0,0.28);
+  border:1px solid var(--border);
+  border-radius:var(--rs);
+  color:var(--tx);
+  font-family:var(--fd);font-size:14px;
+  outline:none;appearance:none;-webkit-appearance:none;
+  transition:border-color 0.22s,box-shadow 0.22s,background 0.22s;
+}
+input::placeholder{color:var(--su);}
+input:focus,select:focus{border-color:var(--border-p);box-shadow:0 0 0 3px var(--pd);background:rgba(0,245,180,0.022);}
+select option{background:#0a0e1a;color:var(--tx);}
+ 
+/* Privacy note */
+.pnote{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--blued);border:1px solid rgba(91,159,255,0.14);border-radius:9px;margin-top:7px;font-size:11.5px;color:rgba(229,237,248,0.6);line-height:1.6;}
+.pnote-i{flex-shrink:0;font-size:13px;margin-top:1px;}
+ 
+/* ─── BUTTONS ─── */
+.btn{width:100%;padding:13.5px;border:none;border-radius:var(--rs);font-family:var(--fh);font-size:13px;font-weight:700;letter-spacing:0.4px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.22s;}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,0.07),transparent);opacity:0;transition:opacity 0.18s;}
+.btn:hover::after{opacity:1;}
+/* Shine sweep */
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);transform:skewX(-18deg);transition:left 0.55s;}
+.btn:hover::before{left:180%;}
+.btn-p{background:linear-gradient(135deg,var(--p) 0%,#00c9a2 100%);color:#03050a;box-shadow:0 5px 24px rgba(0,245,180,0.2);margin-top:7px;}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,245,180,0.35);}
+.btn-p:active{transform:translateY(0) scale(0.98);}
+.btn-ghost{background:transparent;color:var(--mu);border:1px solid var(--border);margin-top:9px;font-size:12.5px;}
+.btn-ghost:hover{color:var(--tx);border-color:rgba(255,255,255,0.12);background:var(--card2);}
+/* Loading */
+.btn.ld{pointer-events:none;opacity:0.7;}
+.btn.ld .bl{opacity:0;}
+.btn.ld::after{content:'';position:absolute;width:15px;height:15px;border:2px solid rgba(3,5,10,0.25);border-top-color:#03050a;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);animation:spin 0.65s linear infinite;background:transparent;}
+.btn-p.ld::after{border-top-color:#03050a;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+ 
+/* Divider */
+.div{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--su);font-size:12px;}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--border);}
+ 
+/* ─── TERMS ─── */
+.terms-box{height:128px;overflow-y:auto;background:rgba(0,0,0,0.22);border:1px solid var(--border);border-radius:var(--rs);padding:13px 15px;font-size:12.5px;line-height:1.75;color:rgba(229,237,248,0.52);margin-bottom:14px;}
+.terms-box::-webkit-scrollbar{width:4px;}
+.terms-box::-webkit-scrollbar-thumb{background:rgba(0,245,180,0.22);border-radius:4px;}
+.terms-title{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px;}
+.chk-row{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--pd);border:1px solid rgba(0,245,180,0.17);border-radius:var(--rs);margin-bottom:4px;cursor:pointer;transition:background 0.18s,border-color 0.18s;}
+.chk-row:hover{background:var(--pg);border-color:rgba(0,245,180,0.3);}
+.chk-w{position:relative;width:22px;height:22px;flex-shrink:0;}
+.chk-w input{position:absolute;opacity:0;width:0;height:0;}
+.chk-vis{width:22px;height:22px;border-radius:6px;border:2px solid rgba(0,245,180,0.32);background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;transition:all 0.18s;}
+.chk-w input:checked+.chk-vis{background:var(--p);border-color:var(--p);box-shadow:0 0 14px rgba(0,245,180,0.38);}
+.chk-vis::after{content:'';width:5px;height:9px;border:2px solid #03050a;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);opacity:0;transition:opacity 0.13s;}
+.chk-w input:checked+.chk-vis::after{opacity:1;}
+.chk-lbl{font-size:13.5px;font-weight:500;color:var(--tx);line-height:1.4;}
+.chk-lbl em{color:var(--p);font-style:normal;}
+ 
+/* Note box */
+.nbox{display:flex;align-items:flex-start;gap:9px;padding:11px 14px;background:var(--goldd);border:1px solid rgba(255,209,102,0.16);border-radius:9px;margin-top:13px;font-size:12px;color:rgba(255,209,102,0.82);line-height:1.6;}
+.ni{font-size:14px;flex-shrink:0;margin-top:1px;}
+ 
+/* ─── INFO CARDS ─── */
+.ic{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;margin-bottom:14px;transition:border-color 0.3s;}
+.ic:hover{border-color:rgba(255,255,255,0.095);}
+.ic-title{display:flex;align-items:center;gap:10px;font-family:var(--fh);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;}
+.ic-body{font-size:13px;color:rgba(229,237,248,0.55);line-height:1.85;}
+.ic-body .h{color:var(--p);font-weight:600;}
+.ic-body a{color:var(--p);text-decoration:none;}
+.ic-body a:hover{text-decoration:underline;}
+.ic-sig{margin-top:13px;font-size:13.5px;color:var(--p);font-weight:600;}
+ 
+/* WA card */
+.wa{width:100%;background:linear-gradient(135deg,rgba(37,211,102,0.06),rgba(0,245,180,0.04));border:1px solid rgba(37,211,102,0.16);border-radius:var(--r);padding:26px 22px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
+.wa::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(37,211,102,0.06),transparent 60%);}
+.wa-t{font-family:var(--fh);font-size:17px;font-weight:700;color:#fff;margin-bottom:9px;position:relative;}
+.wa-s{font-size:13px;color:rgba(229,237,248,0.6);line-height:1.75;margin-bottom:19px;position:relative;}
+.wa-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 26px;background:linear-gradient(135deg,#25d366,#1da851);border-radius:var(--rp);text-decoration:none;color:#fff;font-family:var(--fh);font-size:13px;font-weight:700;box-shadow:0 5px 22px rgba(37,211,102,0.28);transition:all 0.22s;position:relative;}
+.wa-btn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(37,211,102,0.42);}
+.wa-n{margin-top:11px;font-size:11px;color:rgba(229,237,248,0.32);position:relative;}
+ 
+/* ─── FOOTER ─── */
+.ft{width:100%;margin-top:6px;padding-bottom:18px;text-align:center;}
+.ft-links{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
+.ft-link{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--rp);background:var(--card);border:1px solid var(--border);text-decoration:none;font-size:12.5px;font-weight:500;transition:all 0.18s;}
+.ft-link.m{color:var(--p);}
+.ft-link.m:hover{background:var(--pd);border-color:rgba(0,245,180,0.24);}
+.ft-link.ig{color:#e1306c;}
+.ft-link.ig:hover{background:rgba(225,48,108,0.07);border-color:rgba(225,48,108,0.26);}
+.ft-copy{font-size:11.5px;color:var(--su);}
+ 
+/* ─── TOAST ─── */
+.th{position:fixed;top:22px;right:22px;display:flex;flex-direction:column;gap:9px;z-index:9999;pointer-events:none;}
+.tn{display:flex;align-items:center;gap:11px;padding:12px 17px;border-radius:var(--rs);background:rgba(7,12,22,0.96);backdrop-filter:blur(20px);border:1px solid var(--border);border-left:3px solid;box-shadow:0 14px 44px rgba(0,0,0,0.5);min-width:240px;pointer-events:all;animation:tIn 0.4s var(--sp);position:relative;overflow:hidden;}
+.tn.ok{border-left-color:var(--p);}
+.tn.err{border-left-color:var(--rose);}
+.tn.hd{animation:tOut 0.28s ease forwards;}
+@keyframes tIn{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@keyframes tOut{to{transform:translateX(110%);opacity:0;}}
+.ti{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.tn.ok .ti{background:rgba(0,245,180,0.12);color:var(--p);}
+.tn.err .ti{background:rgba(255,107,157,0.12);color:var(--rose);}
+.tm{font-size:13px;font-weight:500;line-height:1.4;flex:1;}
+.tb{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:bshrink 3.2s linear forwards;}
+.tn.ok .tb{background:var(--p);}
+.tn.err .tb{background:var(--rose);}
+@keyframes bshrink{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+ 
+/* ─── CURSOR GLOW ─── */
+.cg{position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,180,0.035) 0%,transparent 60%);pointer-events:none;z-index:0;transform:translate(-50%,-50%);will-change:left,top;transition:left 0.06s linear,top 0.06s linear;}
+@media(hover:none){.cg{display:none;}}
+@media(max-width:480px){.card{padding:24px 18px 20px;}.wordmark{font-size:30px;}.frow{grid-template-columns:1fr;}.page{padding:22px 14px 60px;}}
 </style>
 </head>
 <body>
-
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
-<div class="grid-overlay"></div>
-
+ 
+<div class="cg" id="cg"></div>
+<div class="bg"><div class="bg-m"></div><div class="bg-g"></div></div>
+ 
+<div class="page">
 <div class="scene">
-
-  <!-- LOGO -->
+ 
   <div class="logo-area">
-    <div class="logo-badge"><div class="logo-dot"></div><span>Academic Portal</span></div>
-    <div class="logo-title">KL <span class="accent">STUDY</span> HUB</div>
-    <div class="logo-sub">Your gateway to shared knowledge</div>
+    <div class="live-pill"><div class="live-dot"></div><span class="live-text">Academic Portal</span></div>
+    <div class="wordmark">KL <span class="hollow">STUDY</span> HUB</div>
+    <div class="tagline">Your gateway to shared knowledge</div>
   </div>
-
-  <!-- QUOTE BOX -->
-  <div class="quote-box" id="quoteBox">
-    <div class="quote-text" id="quoteText">Loading quote...</div>
-    <div class="quote-author" id="quoteAuthor"></div>
-    <div class="quote-nav">
-      <button class="quote-nav-btn" onclick="prevQuote()">←</button>
-      <button class="quote-nav-btn" onclick="nextQuote()">→</button>
+ 
+  <div class="q-box">
+    <div class="q-line"></div>
+    <div class="q-txt" id="qT">Loading…</div>
+    <div class="q-by" id="qB"></div>
+    <div class="q-nav">
+      <button class="q-btn" onclick="pQ()">▲</button>
+      <button class="q-btn" onclick="nQ()">▼</button>
     </div>
   </div>
-
-  <!-- CARD -->
+ 
   <div class="card">
-
+ 
     <!-- LOGIN -->
-    <div id="loginBox" class="panel active">
-      <div class="steps"><div class="step done"></div></div>
-      <div class="panel-header"><h2>Welcome back</h2><p>Sign in with your student credentials</p></div>
-      <div class="field"><label>Student ID</label><input id="id" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
-      <div class="field"><label>Password</label><input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="btn btn-primary" onclick="login(this)"><span class="btn-text">Sign In</span></button>
-      <div class="divider">or</div>
-      <button class="btn btn-ghost" onclick="openSignup()">Create New Account</button>
+    <div class="panel active" id="pL">
+      <div class="steps"><div class="step on"></div></div>
+      <div class="phd"><h2>Welcome back</h2><p>Sign in with your student credentials</p></div>
+      <div class="field"><label class="fl">Student ID</label><input id="iId" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
+      <div class="field"><label class="fl">Password</label><input id="iPw" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-p" onclick="doL(this)"><span class="bl">Sign In →</span></button>
+      <div class="div">or</div>
+      <button class="btn btn-ghost" onclick="gP('pT')">Create New Account</button>
     </div>
-
+ 
     <!-- TERMS -->
-    <div id="signupBox" class="panel">
-      <div class="steps"><div class="step done"></div><div class="step"></div></div>
-      <div class="panel-header"><h2>Terms & Conditions</h2><p>Please read carefully before creating your account</p></div>
+    <div class="panel" id="pT">
+      <div class="steps"><div class="step on"></div><div class="step"></div></div>
+      <div class="phd"><h2>Terms &amp; Conditions</h2><p>Please read carefully before joining</p></div>
       <div class="terms-box">
-        <div class="terms-title">KL Study Hub – Terms & Conditions</div>
+        <div class="terms-title">KL Study Hub — Terms &amp; Conditions</div>
         Only valid students with approved IDs are allowed.<br><br>
         Users must keep login credentials secure. Sharing credentials is discouraged. While we store data securely, misuse due to shared credentials is the user's responsibility.<br><br>
         Do not upload harmful, illegal, or copyrighted content.<br><br>
-        Admins can approve, reject, or remove users and resources.<br><br>
-        Platform is provided "as is" for academic use only.<br><br>
-        By continuing, you agree to all terms.
+        Admins can approve, reject, or remove users and resources at any time.<br><br>
+        This platform is provided "as is" for academic purposes only.<br><br>
+        By continuing, you acknowledge and agree to all terms above.
       </div>
-      <label class="checkbox-row" onclick="toggleAgree()">
-        <div class="custom-checkbox">
-          <input type="checkbox" id="agree">
-          <div class="check-box"></div>
-        </div>
-        <div class="checkbox-label">I have read and agree to all <span>Terms & Conditions</span></div>
+      <label class="chk-row" onclick="tC()">
+        <div class="chk-w"><input type="checkbox" id="chk"><div class="chk-vis"></div></div>
+        <div class="chk-lbl">I have read and agree to all <em>Terms &amp; Conditions</em></div>
       </label>
-      <button class="btn btn-primary" onclick="next()" style="margin-top:16px;"><span class="btn-text">Continue →</span></button>
-      <button class="btn btn-ghost" onclick="backToLogin()">← Back to Login</button>
+      <button class="btn btn-p" onclick="doN()" style="margin-top:16px;"><span class="bl">Continue →</span></button>
+      <button class="btn btn-ghost" onclick="gP('pL')">← Back to Sign In</button>
     </div>
-
+ 
     <!-- SIGNUP -->
-    <div id="formBox" class="panel">
-      <div class="steps"><div class="step done"></div><div class="step done"></div></div>
-      <div class="panel-header"><h2>Create Account</h2><p>Fill in your details to request access</p></div>
-
-      <!-- NAME (OPTIONAL) -->
+    <div class="panel" id="pS">
+      <div class="steps"><div class="step on"></div><div class="step on"></div></div>
+      <div class="phd"><h2>Create Account</h2><p>Fill in your details to request access</p></div>
       <div class="field">
-        <div class="field-optional">
-          <label>Full Name</label>
-          <span class="field-optional-badge">Optional</span>
+        <div class="opt-row"><label class="fl" style="margin-bottom:0;">Full Name</label><span class="opt-tag">Optional</span></div>
+        <input id="iNm" placeholder="e.g. Hemanth Paladugula">
+        <div class="pnote"><span class="pnote-i">ℹ️</span><span>Your name will be <strong>visible to all students</strong> on the leaderboard. Leave blank to show only your Student ID.</span></div>
+      </div>
+      <div class="field"><label class="fl">Student ID *</label><input id="iSid" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
+      <div class="field"><label class="fl">Password *</label><input id="iSpw" type="password" placeholder="Choose a strong password" autocomplete="new-password"></div>
+      <div class="frow">
+        <div class="field" style="margin-bottom:0;"><label class="fl">Branch *</label>
+          <select id="iBr"><option value="CSE">CSE</option><option value="ECE">ECE</option><option value="EEE">EEE</option><option value="AIDS">AIDS</option><option value="CSIT">CSIT</option></select>
         </div>
-        <input id="sname" placeholder="e.g. Hemanth Paladugula">
-        <div class="privacy-note">
-          <span class="pi">ℹ️</span>
-          <span>If you enter your name, it will be <b>visible to all students</b> on the leaderboard and comments. Leave blank to show only your Student ID.</span>
+        <div class="field" style="margin-bottom:0;"><label class="fl">Year *</label>
+          <select id="iYr"><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select>
         </div>
       </div>
-
-      <div class="field"><label>Student ID *</label><input id="sid" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
-      <div class="field"><label>Password *</label><input id="spass" type="password" placeholder="Choose a strong password" autocomplete="new-password"></div>
-
-      <!-- BRANCH + YEAR -->
-      <div class="field-row">
-        <div class="field" style="margin-bottom:0;">
-          <label>Branch *</label>
-          <select id="branch">
-            <option value="CSE">CSE</option>
-            <option value="ECE">ECE</option>
-            <option value="EEE">EEE</option>
-            <option value="AIDS">AIDS</option>
-            <option value="CSIT">CSIT</option>
-          </select>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Year *</label>
-          <select id="year">
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-          </select>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" onclick="signup(this)" style="margin-top:16px;"><span class="btn-text">Submit Request</span></button>
-      <div class="note">
-        <span class="note-icon">⏳</span>
-        <span>Admin approval takes up to 12 hours. Once approved, log in using the Student ID and Password you entered during registration.</span>
-      </div>
-      <button class="btn btn-ghost" onclick="backToLogin()">← Back to Login</button>
+      <button class="btn btn-p" onclick="doS(this)" style="margin-top:16px;"><span class="bl">Submit Request →</span></button>
+      <div class="nbox"><span class="ni">⏳</span><span>Admin approval takes up to 12 hours. Once approved, log in using the Student ID and Password you entered.</span></div>
+      <button class="btn btn-ghost" onclick="gP('pL')">← Back to Sign In</button>
     </div>
-
+ 
   </div>
-
-  <!-- LOGIN NOTE -->
-  <div class="login-note">
-    <div class="login-note-title">👋 A note from the founder</div>
-    Hi, I'm <b>Hemanth</b>.<br><br>
-    KL Study Hub is a student-led platform, founded by <b>Praveen Reddy</b>, created to help students easily access academic resources — especially during exams, when finding the right materials can be challenging.<br><br>
-    We are students of <b>KL University (Y25)</b>, and this initiative is built to support our peers and grow together through shared learning.<br><br>
-    For faculty reviewing this platform, we would like to clarify that this is a <b>genuine student initiative</b> developed for academic support purposes. It is not an official institutional website, but an independent effort created with the intention of helping students.<br><br>
-    If you have any questions or concerns, please feel free to contact us at: klstudyhubinfo@gmail.com
-    <div class="login-note-sig">— Hemanth & Praveen Reddy</div>
-  </div>
-
-  <!-- ABOUT SECTION -->
-  <div class="about-section">
-    <div class="about-title">📖 About KL Study Hub</div>
-    <div class="about-text">
-      KL Study Hub was created with a simple idea — to make academic resources easier to access for every student.<br><br>
-      During exams, students often struggle to find the right materials at the right time. This platform is built to solve that problem by organizing useful resources in one place, making learning more efficient and less stressful.<br><br>
-      Developed by <span class="highlight">students of KL University (Y25)</span>, KL Study Hub reflects our effort to create a system that benefits not just us, but every student who needs quick and reliable access to study materials.<br><br>
-      Our goal is to simplify learning, save time, and support students in achieving better results through shared resources.<br><br>
-      <span class="highlight">Built by students, for students.</span>
+ 
+  <div class="ic">
+    <div class="ic-title">👋 A note from the founders</div>
+    <div class="ic-body">
+      Hi, I'm <span class="h">Hemanth</span>.<br><br>
+      KL Study Hub is a student-led platform, co-founded with <span class="h">Praveen Reddy</span>, created to help students easily access academic resources — especially during exams, when finding the right materials can be challenging.<br><br>
+      We are students of <span class="h">KL University (Y25)</span>, and this initiative is built to support our peers and grow together through shared learning.<br><br>
+      For faculty reviewing this platform — this is a <span class="h">genuine student initiative</span> for academic support, not an official institutional website.<br><br>
+      Reach us at: <a href="mailto:klstudyhubinfo@gmail.com">klstudyhubinfo@gmail.com</a>
+      <div class="ic-sig">— Hemanth &amp; Praveen Reddy</div>
     </div>
   </div>
-
-  <!-- WHATSAPP CTA -->
-  <div class="wa-cta">
-    <div class="wa-text">
-      <div class="wa-title">🎓 You don't have to study alone.</div>
-      <div class="wa-sub">Hundreds of KL students are already sharing notes, solving doubts, and lifting each other up — every single day. Join your people. Be part of something real.</div>
+ 
+  <div class="ic">
+    <div class="ic-title">📖 About KL Study Hub</div>
+    <div class="ic-body">
+      KL Study Hub was built around one idea — make academic resources easier to find for every student.<br><br>
+      During exams, students struggle to find the right materials in time. This platform solves that by organizing resources in one place, making learning more efficient and less stressful.<br><br>
+      Developed by <span class="h">students of KL University (Y25)</span>, we built something that benefits every student who needs quick, reliable access to study materials.<br><br>
+      <span class="h">Built by students, for students.</span>
     </div>
-    <a href="https://chat.whatsapp.com/LWNBaMmNNuSH08ztjFg39B" class="wa-btn" target="_blank">
-      <span class="wa-icon">💬</span>
-      <span>Join our WhatsApp Community</span>
-    </a>
-    <div class="wa-note">Free · Students only · No spam, just support 🤝</div>
   </div>
-
-  <!-- FOOTER -->
-  <div class="page-footer">
-    <div class="footer-links">
-      <a href="mailto:klstudyhubinfo@gmail.com" class="footer-link email" target="_blank"><span class="fl-icon">📧</span><span>klstudyhubinfo@gmail.com</span></a>
-      <a href="https://www.instagram.com/hemanth_paladugula" class="footer-link insta" target="_blank">
-        <span class="fl-icon">📸</span>
-        <span>@hemanth_paladugula</span>
-      </a>
-      <a href="https://www.instagram.com/praveen_retotal_13" class="footer-link insta" target="_blank">
-        <span class="fl-icon">📸</span>
-        <span>@praveen_retotal_13</span>
-      </a>
+ 
+  <div class="wa">
+    <div class="wa-t">🎓 You don't have to study alone.</div>
+    <div class="wa-s">Hundreds of KL students are already sharing notes, solving doubts, and lifting each other up — every single day. Join your people.</div>
+    <a href="https://chat.whatsapp.com/LWNBaMmNNuSH08ztjFg39B" class="wa-btn" target="_blank"><span>💬</span><span>Join our WhatsApp Community</span></a>
+    <div class="wa-n">Free · Students only · No spam, just support 🤝</div>
+  </div>
+ 
+  <div class="ft">
+    <div class="ft-links">
+      <a href="mailto:klstudyhubinfo@gmail.com" class="ft-link m"><span>📧</span><span>klstudyhubinfo@gmail.com</span></a>
+      <a href="https://www.instagram.com/hemanth_paladugula" class="ft-link ig" target="_blank"><span>📸</span><span>@hemanth_paladugula</span></a>
+      <a href="https://www.instagram.com/praveen_retotal_13" class="ft-link ig" target="_blank"><span>📸</span><span>@praveen_retotal_13</span></a>
     </div>
-    <div class="footer-copy">KL Study Hub © 2026 · Built by students, for students</div>
+    <div class="ft-copy">KL Study Hub © 2026 · Built by students, for students</div>
   </div>
-
+ 
 </div>
-
-<div class="toast-wrap" id="toastWrap"></div>
-
+</div>
+ 
+<div class="th" id="th"></div>
+ 
 <script>
-const { createClient } = supabase;
-const client = createClient(
-  "https://jkgkswsiunpzwnurqvjq.supabase.co",
-  "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
-);
-
-// ── QUOTES ──
-const QUOTES = [
-  { text: "The quieter you become, the more you can hear.", author: "— Kali Linux Motto" },
-  { text: "Security is not a product, but a process.", author: "— Bruce Schneier" },
-  { text: "In God we trust. All others we monitor.", author: "— NSA Saying" },
-  { text: "There are only two types of companies: those that have been hacked and those that don't know they have been hacked.", author: "— John Chambers, Cisco CEO" },
-  { text: "It takes 20 years to build a reputation and a few minutes of cyber-incident to ruin it.", author: "— Stephane Nappo" },
-  { text: "Think like a hacker to stop a hacker.", author: "— Unknown" },
-  { text: "Arguing that you don't care about privacy because you have nothing to hide is like saying you don't care about free speech because you have nothing to say.", author: "— Edward Snowden" },
-  { text: "The stone age didn't end because we ran out of stones.", author: "— Unknown" },
-  { text: "The expert in anything was once a beginner.", author: "— Helen Hayes" },
-  { text: "The beautiful thing about learning is nobody can take it away from you.", author: "— B.B. King" },
-  { text: "Don't wish it were easier. Wish you were better.", author: "— Jim Rohn" },
-  { text: "A smooth sea never made a skilled sailor.", author: "— Franklin D. Roosevelt" },
-  { text: "Fall seven times, stand up eight.", author: "— Japanese Proverb" },
-  { text: "It always seems impossible until it's done.", author: "— Nelson Mandela" },
-  { text: "Hard work beats talent when talent doesn't work hard.", author: "— Tim Notke" },
-  { text: "In the middle of difficulty lies opportunity.", author: "— Albert Einstein" },
-  { text: "Success is not final, failure is not fatal. It is the courage to continue that counts.", author: "— Winston Churchill" },
-  { text: "The more I learn, the more I realize how much I don't know.", author: "— Albert Einstein" },
-  { text: "Passwords are like underwear — change them often, don't share them, and don't leave them out.", author: "— Chris Pirillo" },
-  { text: "Study hard what interests you the most in the most undisciplined, irreverent and original manner possible.", author: "— Richard Feynman" }
+const{createClient}=supabase;
+const db=createClient("https://jkgkswsiunpzwnurqvjq.supabase.co","sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8");
+ 
+// Cursor glow
+const cg=document.getElementById('cg');
+document.addEventListener('mousemove',e=>{cg.style.left=e.clientX+'px';cg.style.top=e.clientY+'px';},{passive:true});
+ 
+// Quotes
+const QS=[
+  {t:"The quieter you become, the more you can hear.",a:"— Kali Linux Motto"},
+  {t:"Security is not a product, but a process.",a:"— Bruce Schneier"},
+  {t:"In God we trust. All others we monitor.",a:"— NSA Saying"},
+  {t:"Think like a hacker to stop a hacker.",a:"— Unknown"},
+  {t:"Arguing that you don't care about privacy because you have nothing to hide is like saying you don't care about free speech.",a:"— Edward Snowden"},
+  {t:"The expert in anything was once a beginner.",a:"— Helen Hayes"},
+  {t:"The beautiful thing about learning is nobody can take it away from you.",a:"— B.B. King"},
+  {t:"Don't wish it were easier. Wish you were better.",a:"— Jim Rohn"},
+  {t:"A smooth sea never made a skilled sailor.",a:"— Franklin D. Roosevelt"},
+  {t:"Fall seven times, stand up eight.",a:"— Japanese Proverb"},
+  {t:"It always seems impossible until it's done.",a:"— Nelson Mandela"},
+  {t:"Hard work beats talent when talent doesn't work hard.",a:"— Tim Notke"},
+  {t:"In the middle of difficulty lies opportunity.",a:"— Albert Einstein"},
+  {t:"Success is not final, failure is not fatal — it is the courage to continue that counts.",a:"— Winston Churchill"},
+  {t:"The more I learn, the more I realize how much I don't know.",a:"— Albert Einstein"},
+  {t:"Study hard what interests you in the most undisciplined, irreverent and original manner possible.",a:"— Richard Feynman"},
+  {t:"Passwords are like underwear — change them often, don't share them.",a:"— Chris Pirillo"},
 ];
-
-// Pick random quote on load, change daily
-const today = new Date().toDateString();
-const storedDate = localStorage.getItem("quoteDate");
-let quoteIndex = parseInt(localStorage.getItem("quoteIndex") || "0");
-if (storedDate !== today) {
-  quoteIndex = Math.floor(Math.random() * QUOTES.length);
-  localStorage.setItem("quoteDate", today);
-  localStorage.setItem("quoteIndex", quoteIndex);
+const today=new Date().toDateString();
+let qi=parseInt(localStorage.getItem('qi')||'0');
+if(localStorage.getItem('qd')!==today){qi=Math.floor(Math.random()*QS.length);localStorage.setItem('qd',today);localStorage.setItem('qi',qi);}
+function rQ(){const q=QS[qi];const t=document.getElementById('qT');t.style.opacity='0';setTimeout(()=>{t.textContent=q.t;document.getElementById('qB').textContent=q.a;t.style.opacity='1';},150);t.style.transition='opacity 0.25s';}
+function nQ(){qi=(qi+1)%QS.length;localStorage.setItem('qi',qi);rQ();}
+function pQ(){qi=(qi-1+QS.length)%QS.length;localStorage.setItem('qi',qi);rQ();}
+rQ();
+ 
+// Panels
+function gP(id){
+  document.querySelectorAll('.panel').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  const el=document.getElementById(id);el.style.display='block';el.offsetHeight;el.classList.add('active');
 }
-
-function showQuote(idx) {
-  const q = QUOTES[idx];
-  document.getElementById("quoteText").textContent = q.text;
-  document.getElementById("quoteAuthor").textContent = q.author;
+function tC(){const c=document.getElementById('chk');c.checked=!c.checked;}
+function doN(){if(!document.getElementById('chk').checked){toast('Please agree to the Terms first.','err');return;}gP('pS');}
+ 
+// Toast
+function toast(msg,type='ok'){
+  const h=document.getElementById('th');const t=document.createElement('div');
+  t.className=`tn ${type}`;
+  t.innerHTML=`<div class="ti">${type==='ok'?'✓':'✕'}</div><div class="tm">${msg}</div><div class="tb"></div>`;
+  h.appendChild(t);
+  setTimeout(()=>{t.classList.add('hd');t.addEventListener('animationend',()=>t.remove());},3200);
 }
-function nextQuote() { quoteIndex = (quoteIndex + 1) % QUOTES.length; localStorage.setItem("quoteIndex", quoteIndex); showQuote(quoteIndex); }
-function prevQuote() { quoteIndex = (quoteIndex - 1 + QUOTES.length) % QUOTES.length; localStorage.setItem("quoteIndex", quoteIndex); showQuote(quoteIndex); }
-showQuote(quoteIndex);
-
-// ── PANEL NAV ──
-function showPanel(id) {
-  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-  const el = document.getElementById(id);
-  el.style.display = 'block'; el.classList.add('active');
-  el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
-}
-function openSignup() { showPanel('signupBox'); }
-function backToLogin() { showPanel('loginBox'); }
-function next() {
-  if (!document.getElementById('agree').checked) { showToast('Please agree to the terms first.', 'error'); return; }
-  showPanel('formBox');
-}
-function toggleAgree() { const cb = document.getElementById('agree'); cb.checked = !cb.checked; }
-
-// ── TOAST ──
-function showToast(msg, type = 'success') {
-  const wrap = document.getElementById('toastWrap');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.innerHTML = `<div class="toast-icon">${type === 'success' ? '✓' : '✕'}</div><div class="toast-msg">${msg}</div><div class="toast-bar"></div>`;
-  wrap.appendChild(t);
-  setTimeout(() => { t.classList.add('hiding'); t.addEventListener('animationend', () => t.remove()); }, 3000);
-}
-
-// ── LOADING ──
-function setLoading(btn, state) { btn.classList.toggle('btn-loading', state); }
-
-// ── LOGIN ──
-async function login(btn) {
-  const id   = document.getElementById('id').value.trim();
-  const pass = document.getElementById('pass').value;
-  if (!id || !pass) { showToast('Please enter your Student ID and Password.', 'error'); return; }
-  setLoading(btn, true);
-  const { data, error } = await client.from('users').select('*').eq('id_no', id).eq('password', pass).single();
-  setLoading(btn, false);
-  if (error || !data) { showToast('Invalid Student ID or Password.', 'error'); return; }
-  if (data.status !== 'approved') { showToast('Your account is pending admin approval.', 'error'); return; }
-
-  // Update last login + streak
-  const today = new Date().toDateString();
-  const lastLogin = data.last_login ? new Date(data.last_login).toDateString() : null;
-  let newStreak = data.streak_count || 0;
-  let newPoints = data.points || 0;
-
-  if (lastLogin !== today) {
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    if (lastLogin === yesterday.toDateString()) {
-      newStreak += 1;
-    } else if (lastLogin !== today) {
-      newStreak = 1;
-    }
-    newPoints += 10; // daily login points
-
-    // Streak bonus
-    if (newStreak === 7)  newPoints += 30;
-    if (newStreak === 30) newPoints += 100;
-
-    // Calculate level
-    const newLevel = calcLevel(newPoints);
-    await client.from('users').update({
-      last_login: new Date().toISOString(),
-      streak_count: newStreak,
-      points: newPoints,
-      level: newLevel,
-      longest_streak: Math.max(newStreak, data.longest_streak || 0)
-    }).eq('id_no', id);
-
-    data.streak_count = newStreak;
-    data.points = newPoints;
-    data.level = newLevel;
+ 
+function calcLvl(p){if(p>=10000)return 10;if(p>=7500)return 9;if(p>=5000)return 8;if(p>=3500)return 7;if(p>=2000)return 6;if(p>=1000)return 5;if(p>=600)return 4;if(p>=300)return 3;if(p>=100)return 2;return 1;}
+ 
+// Login
+async function doL(btn){
+  const id=document.getElementById('iId').value.trim();const pw=document.getElementById('iPw').value;
+  if(!id||!pw){toast('Please enter your Student ID and Password.','err');return;}
+  btn.classList.add('ld');
+  const{data,error}=await db.from('users').select('*').eq('id_no',id).eq('password',pw).single();
+  btn.classList.remove('ld');
+  if(error||!data){toast('Invalid Student ID or Password.','err');return;}
+  if(data.status!=='approved'){toast('Your account is pending admin approval.','err');return;}
+  const todayS=new Date().toDateString();const lastS=data.last_login?new Date(data.last_login).toDateString():null;
+  let st=data.streak_count||0,pts=data.points||0;
+  if(lastS!==todayS){
+    const y=new Date();y.setDate(y.getDate()-1);
+    st=lastS===y.toDateString()?st+1:1;pts+=10;
+    if(st===7)pts+=30;if(st===30)pts+=100;
+    const lv=calcLvl(pts);
+    await db.from('users').update({last_login:new Date().toISOString(),streak_count:st,points:pts,level:lv,longest_streak:Math.max(st,data.longest_streak||0)}).eq('id_no',id);
+    data.streak_count=st;data.points=pts;data.level=lv;
   }
-
-  showToast('Login successful! Redirecting…', 'success');
-  localStorage.setItem('user', JSON.stringify(data));
-  setTimeout(() => {
-    if (data.role === 'admin' || data.role === 'ultra_admin' || data.role === 'coadmin') {
-      window.location = 'admin.html';
-    } else {
-      window.location = 'dashboard.html';
-    }
-  }, 1000);
+  toast('Login successful! Redirecting…','ok');localStorage.setItem('user',JSON.stringify(data));
+  setTimeout(()=>{window.location=['admin','ultra_admin','coadmin'].includes(data.role)?'admin.html':'dashboard.html';},1000);
 }
-
-function calcLevel(points) {
-  if (points >= 10000) return 10;
-  if (points >= 7500)  return 9;
-  if (points >= 5000)  return 8;
-  if (points >= 3500)  return 7;
-  if (points >= 2000)  return 6;
-  if (points >= 1000)  return 5;
-  if (points >= 600)   return 4;
-  if (points >= 300)   return 3;
-  if (points >= 100)   return 2;
-  return 1;
+ 
+// Signup
+async function doS(btn){
+  const nm=document.getElementById('iNm').value.trim();const sid=document.getElementById('iSid').value.trim();const pw=document.getElementById('iSpw').value;const br=document.getElementById('iBr').value;const yr=document.getElementById('iYr').value;
+  if(!sid||!pw){toast('Please fill in Student ID and Password.','err');return;}
+  btn.classList.add('ld');
+  const row={id_no:sid,password:pw,branch:br,year:yr,role:'user',status:'pending',points:0,level:1,streak_count:0};
+  if(nm)row.name=nm;
+  const{error}=await db.from('users').insert([row]);
+  btn.classList.remove('ld');
+  if(error){toast('Error creating account. Please try again.','err');return;}
+  toast('Request sent! Awaiting admin approval.','ok');
+  ['iSid','iSpw','iNm'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('chk').checked=false;
+  setTimeout(()=>gP('pL'),1600);
 }
-
-// ── SIGNUP ──
-async function signup(btn) {
-  const sname  = document.getElementById('sname').value.trim();
-  const sid    = document.getElementById('sid').value.trim();
-  const spass  = document.getElementById('spass').value;
-  const branch = document.getElementById('branch').value;
-  const year   = document.getElementById('year').value;
-  if (!sid || !spass) { showToast('Please fill in Student ID and Password.', 'error'); return; }
-  setLoading(btn, true);
-  const insertData = { id_no: sid, password: spass, branch, year, role: 'user', status: 'pending', points: 0, level: 1, streak_count: 0 };
-  if (sname) insertData.name = sname;
-  const { error } = await client.from('users').insert([insertData]);
-  setLoading(btn, false);
-  if (error) { showToast('Error creating account. Please try again.', 'error'); return; }
-  showToast('Request sent! Awaiting admin approval.', 'success');
-  document.getElementById('sid').value = '';
-  document.getElementById('spass').value = '';
-  document.getElementById('sname').value = '';
-  document.getElementById('agree').checked = false;
-  setTimeout(() => backToLogin(), 1600);
-}
-
-// ── ENTER KEY ──
-document.addEventListener("keydown", e => {
-  if (e.key !== "Enter") return;
-  const active = document.querySelector(".panel.active");
-  if (!active) return;
-  if (active.id === "loginBox") { login(active.querySelector(".btn-primary")); }
-  else if (active.id === "formBox") { signup(active.querySelector(".btn-primary")); }
+ 
+// Enter key
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const a=document.querySelector('.panel.active');if(!a)return;
+  if(a.id==='pL')doL(a.querySelector('.btn-p'));
+  else if(a.id==='pS')doS(a.querySelector('.btn-p'));
 });
 </script>
 </body>
