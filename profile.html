@@ -111,25 +111,7 @@ main{position:relative;z-index:1;max-width:1020px;margin:0 auto;padding:28px 22p
 .badge-pts{font-size:10.5px;font-weight:700;color:var(--gold);}
 .badge-earned-at{font-size:10px;color:var(--p);margin-top:4px;font-weight:600;}
 
-/* ELIGIBILITY */
-.elig-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:20px;}
-.elig-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
-.elig-pct{font-family:var(--fh);font-size:38px;font-weight:900;color:var(--p);line-height:1;}
-.elig-info{flex:1;}
-.elig-title{font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:3px;}
-.elig-sub{font-size:12.5px;color:var(--mu);}
-.elig-bar-outer{background:rgba(255,255,255,0.055);border-radius:7px;height:9px;overflow:hidden;margin-bottom:14px;}
-.elig-bar-inner{height:100%;background:linear-gradient(90deg,var(--p),#00c9a2);border-radius:7px;transition:width 0.8s var(--eo);}
-.elig-criteria{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}
-.elig-item{display:flex;align-items:center;gap:9px;padding:9px 12px;background:rgba(255,255,255,0.018);border-radius:9px;border:1px solid rgba(255,255,255,0.04);}
-.elig-check{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
-.elig-check.pass{background:rgba(0,245,180,0.14);color:var(--p);}
-.elig-check.fail{background:rgba(255,91,91,0.1);color:#ff5b5b;}
-.elig-label{font-size:12.5px;flex:1;}
-.elig-progress{font-size:11px;color:var(--mu);white-space:nowrap;}
-.elig-eligible-badge{background:linear-gradient(135deg,rgba(0,245,180,0.08),rgba(0,245,180,0.03));border:1px solid rgba(0,245,180,0.2);border-radius:13px;padding:16px 20px;margin-top:14px;text-align:center;}
-.elig-eligible-badge h3{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--p);margin-bottom:6px;}
-.elig-eligible-badge p{font-size:13px;color:var(--mu);line-height:1.6;}
+
 
 /* HEATMAP */
 .heatmap-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:20px;overflow-x:auto;}
@@ -184,7 +166,7 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
 .ft-link{display:flex;align-items:center;gap:6px;text-decoration:none;font-size:12.5px;font-weight:500;padding:6px 13px;border-radius:var(--rp);border:1px solid var(--border);background:var(--card);transition:all 0.18s;}
 .ft-link.email{color:var(--p);}.ft-link.email:hover{background:var(--pd);border-color:rgba(0,245,180,0.28);}
 .ft-link.insta{color:#e1306c;}.ft-link.insta:hover{background:rgba(225,48,108,0.07);border-color:rgba(225,48,108,0.26);}
-@media(max-width:640px){nav{padding:0 14px;}main{padding:18px 14px 60px;}.prof-hero{padding:18px 18px;}.hero-name{font-size:18px;}.hero-pts{font-size:26px;}.badges-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}.elig-criteria{grid-template-columns:1fr;}}
+@media(max-width:640px){nav{padding:0 14px;}main{padding:18px 14px 60px;}.prof-hero{padding:18px 18px;}.hero-name{font-size:18px;}.hero-pts{font-size:26px;}.badges-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}}
 </style>
 </head>
 <body>
@@ -262,20 +244,7 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
     </div>
   </div>
 
-  <!-- CO-ADMIN ELIGIBILITY -->
-  <div class="elig-card a4">
-    <div class="sec-hd" style="margin-bottom:14px;"><h3>🛡️ Co-Admin Eligibility</h3></div>
-    <div class="elig-header">
-      <div class="elig-pct" id="eligPct">0%</div>
-      <div class="elig-info">
-        <div class="elig-title">Eligibility Progress</div>
-        <div class="elig-sub">Meet all criteria to become a Co-Admin</div>
-      </div>
-    </div>
-    <div class="elig-bar-outer"><div class="elig-bar-inner" id="eligBar" style="width:0%"></div></div>
-    <div class="elig-criteria" id="eligCriteria"></div>
-    <div id="eligEligibleMsg"></div>
-  </div>
+
 
   <!-- SHARE CARD -->
   <div class="share-card-wrap a5">
@@ -356,18 +325,7 @@ const ALL_BADGES=[
   {id:"points_7500",icon:"👑",name:"Platinum",desc:"Earn 7500 points",cat:"points",req_type:"points",req_val:7500,pts:400},
   {id:"points_15000",icon:"🚀",name:"Legend",desc:"Earn 15000 points",cat:"points",req_type:"points",req_val:15000,pts:800},
 ];
-const ELIG_CRITERIA=[
-  {key:"points",label:"8,000+ Points",req:8000,getValue:u=>u.points||0},
-  {key:"streak",label:"30 Day Streak achieved",req:30,getValue:u=>u.longest_streak||0},
-  {key:"opened",label:"75+ Resources Opened",req:75,getValue:u=>u.total_resources_opened||0},
-  {key:"rated",label:"20+ Resources Rated",req:20,getValue:u=>u.total_ratings||0},
-  {key:"comments",label:"25+ Comments Posted",req:25,getValue:u=>u.total_comments||0},
-  {key:"age",label:"Account 60+ Days Old",req:60,getValue:u=>{if(!u.created_at)return 0;return Math.floor((Date.now()-new Date(u.created_at))/(1000*60*60*24));}},
-  {key:"year",label:"2nd Year or above",req:1,getValue:u=>parseInt(u.year||"1")>=2?1:0},
-  {key:"badge_month",label:"Has Month Master Badge",req:1,getValue:(u,earned)=>earned.some(b=>b.badge_id==="streak_30")?1:0},
-  {key:"badge_explorer",label:"Has Explorer Badge",req:1,getValue:(u,earned)=>earned.some(b=>b.badge_id==="open_50")?1:0},
-  {key:"badge_gold",label:"Has Gold Badge",req:1,getValue:(u,earned)=>earned.some(b=>b.badge_id==="points_1500")?1:0},
-];
+
 
 let userData=null,earnedBadges=[];
 
@@ -377,7 +335,7 @@ async function load(){
   const{data:bd}=await client.from("badges_earned").select("*").eq("user_id",user.id_no);
   earnedBadges=bd||[];
   await checkAndAwardBadges();
-  renderHero();renderLevel();renderStats();renderBadges();renderEligibility();renderHeatmap();renderShareCard();
+  renderHero();renderLevel();renderStats();renderBadges();renderHeatmap();renderShareCard();
 }
 
 async function checkAndAwardBadges(){
@@ -464,21 +422,7 @@ function getVal(badge,u){
   return 0;
 }
 
-function renderEligibility(){
-  const results=ELIG_CRITERIA.map(c=>{const val=c.getValue(userData,earnedBadges);const pass=val>=c.req;return{...c,val,pass};});
-  const passed=results.filter(r=>r.pass).length;const pct=Math.round((passed/results.length)*100);
-  document.getElementById("eligPct").textContent=pct+"%";
-  document.getElementById("eligBar").style.width=pct+"%";
-  document.getElementById("eligCriteria").innerHTML=results.map(r=>`<div class="elig-item">
-    <div class="elig-check ${r.pass?'pass':'fail'}">${r.pass?'✓':'✗'}</div>
-    <div class="elig-label">${r.label}</div>
-    <div class="elig-progress">${typeof r.val==='number'&&r.req>1?`${r.val}/${r.req}`:(r.pass?'✓':'✗')}</div>
-  </div>`).join("");
-  if(pct===100){
-    document.getElementById("eligEligibleMsg").innerHTML=`<div class="elig-eligible-badge"><h3>🛡️ You Are Co-Admin Eligible!</h3><p>Congratulations! You have met all requirements. The admin will review your profile and may promote you to Co-Admin soon!</p></div>`;
-    client.from("users").update({is_eligible:true}).eq("id_no",user.id_no);
-  }
-}
+
 
 function renderHeatmap(){
   const heatmap=document.getElementById("heatmap");const months=document.getElementById("heatmapMonths");
