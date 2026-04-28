@@ -6,67 +6,36 @@
 <meta name="description" content="KL Study Hub — The premium academic portal for KL University students.">
 <meta name="theme-color" content="#03050a">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
-<title>KL Study Hub — Academic Portal</title>
+<title>KL Study Hub — Sign In</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#03050a;
-  --s1:#070c16;
-  --card:rgba(255,255,255,0.024);
-  --card2:rgba(255,255,255,0.042);
-  --border:rgba(255,255,255,0.058);
-  --border-p:rgba(0,245,180,0.24);
- 
-  --p:#00f5b4;
-  --p2:#00d4ff;
-  --pd:rgba(0,245,180,0.07);
-  --pg:rgba(0,245,180,0.14);
- 
-  --gold:#ffd166;
-  --goldd:rgba(255,209,102,0.09);
-  --rose:#ff6b9d;
-  --blue:#5b9fff;
-  --blued:rgba(91,159,255,0.09);
- 
-  --tx:#e5edf8;
-  --mu:rgba(229,237,248,0.38);
-  --su:rgba(229,237,248,0.17);
- 
-  --r:18px; --rs:12px; --rp:999px;
-  --fd:'Space Grotesk',sans-serif;
-  --fh:'Orbitron',sans-serif;
-  --eo:cubic-bezier(0.16,1,0.3,1);
-  --sp:cubic-bezier(0.34,1.56,0.64,1);
+  --bg:#03050a;--s1:#070c16;
+  --card:rgba(255,255,255,0.024);--ch:rgba(255,255,255,0.044);
+  --border:rgba(255,255,255,0.058);--bp:rgba(0,245,180,0.24);
+  --p:#00f5b4;--pd:rgba(0,245,180,0.07);--pg:rgba(0,245,180,0.14);
+  --gold:#ffd166;--goldd:rgba(255,209,102,0.09);
+  --rose:#ff6b9d;--red:#ff5b5b;--redd:rgba(255,91,91,0.09);
+  --blue:#5b9fff;--blued:rgba(91,159,255,0.09);
+  --tx:#e5edf8;--mu:rgba(229,237,248,0.38);--su:rgba(229,237,248,0.17);
+  --r:16px;--rs:11px;--rp:999px;
+  --fd:'Space Grotesk',sans-serif;--fh:'Orbitron',sans-serif;
+  --eo:cubic-bezier(0.16,1,0.3,1);--sp:cubic-bezier(0.34,1.56,0.64,1);
 }
 html{scroll-behavior:smooth;}
 body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
- 
-/* ─── BACKGROUND ─── */
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-.bg-m{
-  position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 55% at 8% 12%,rgba(0,245,180,0.055) 0%,transparent 55%),
-    radial-gradient(ellipse 55% 45% at 92% 85%,rgba(91,159,255,0.05) 0%,transparent 55%),
-    radial-gradient(ellipse 45% 35% at 55% 48%,rgba(255,209,102,0.028) 0%,transparent 55%);
-  animation:bgDrift 35s ease-in-out infinite alternate;
-}
-@keyframes bgDrift{from{transform:scale(1);}to{transform:scale(1.07) rotate(1.5deg);}}
-.bg-g{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(0,245,180,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,180,0.016) 1px,transparent 1px);
-  background-size:68px 68px;
-  mask-image:radial-gradient(ellipse 65% 75% at 50% 40%,black 15%,transparent 100%);
-}
- 
-/* ─── PAGE / SCENE ─── */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-m{position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 8% 12%,rgba(0,245,180,0.055) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 92% 85%,rgba(91,159,255,0.05) 0%,transparent 55%);animation:bgD 35s ease-in-out infinite alternate;}
+@keyframes bgD{from{transform:scale(1);}to{transform:scale(1.07) rotate(1.5deg);}}
+.bg-g{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,180,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,180,0.016) 1px,transparent 1px);background-size:68px 68px;mask-image:radial-gradient(ellipse 65% 75% at 50% 40%,black 15%,transparent 100%);}
 .page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:28px 18px 72px;}
 .scene{width:100%;max-width:472px;display:flex;flex-direction:column;align-items:center;animation:sceneIn 0.85s var(--eo) both;opacity:0;transform:translateY(24px);}
 @keyframes sceneIn{to{opacity:1;transform:none;}}
- 
-/* ─── LOGO ─── */
+
+/* LOGO */
 .logo-area{text-align:center;margin:8px 0 26px;}
 .live-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 15px 5px 9px;background:var(--pd);border:1px solid rgba(0,245,180,0.18);border-radius:var(--rp);margin-bottom:16px;animation:popIn 0.6s 0.3s var(--sp) both;opacity:0;transform:scale(0.8);}
 @keyframes popIn{to{opacity:1;transform:scale(1);}}
@@ -75,110 +44,99 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
 .live-text{font-size:10px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--p);}
 .wordmark{font-family:var(--fh);font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1;color:#fff;margin-bottom:7px;}
 .wordmark .hollow{color:transparent;-webkit-text-stroke:1.5px var(--p);}
-.tagline{font-size:13px;color:var(--mu);letter-spacing:0.2px;}
- 
-/* ─── QUOTE BOX ─── */
-.q-box{
-  width:100%;
-  background:rgba(91,159,255,0.04);
-  border:1px solid rgba(91,159,255,0.11);
-  border-radius:var(--rs);
-  padding:15px 50px 15px 20px;
-  margin-bottom:18px;
-  position:relative;overflow:hidden;
-}
+.tagline{font-size:13px;color:var(--mu);}
+
+/* QUOTE */
+.q-box{width:100%;background:rgba(91,159,255,0.04);border:1px solid rgba(91,159,255,0.11);border-radius:var(--rs);padding:15px 50px 15px 20px;margin-bottom:18px;position:relative;overflow:hidden;}
 .q-line{position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--blue),var(--p));}
 .q-txt{font-size:12.5px;color:rgba(229,237,248,0.72);line-height:1.65;font-style:italic;transition:opacity 0.25s;}
-.q-by{font-size:11px;color:var(--blue);font-weight:600;margin-top:5px;font-style:normal;}
+.q-by{font-size:11px;color:var(--blue);font-weight:600;margin-top:5px;}
 .q-nav{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;}
 .q-btn{width:22px;height:22px;border-radius:6px;background:var(--blued);border:1px solid rgba(91,159,255,0.18);color:var(--blue);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all 0.18s;}
 .q-btn:hover{background:rgba(91,159,255,0.18);}
- 
-/* ─── CARD ─── */
-.card{
-  width:100%;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:34px 30px 30px;
-  backdrop-filter:blur(28px);
-  -webkit-backdrop-filter:blur(28px);
-  position:relative;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(0,245,180,0.04),0 28px 72px rgba(0,0,0,0.58),inset 0 1px 0 rgba(255,255,255,0.055);
-  margin-bottom:18px;
-}
+
+/* CARD */
+.card{width:100%;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:34px 30px 30px;backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(0,245,180,0.04),0 28px 72px rgba(0,0,0,0.58),inset 0 1px 0 rgba(255,255,255,0.055);margin-bottom:18px;}
 .card::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,var(--p),transparent);opacity:0.38;}
 .card::after{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,180,0.035) 0%,transparent 60%);pointer-events:none;}
- 
-/* ─── PANELS ─── */
+
+/* PANELS */
 .panel{display:none;opacity:0;transform:translateX(14px);}
 .panel.active{display:block;animation:pIn 0.36s var(--eo) forwards;}
 @keyframes pIn{to{opacity:1;transform:none;}}
- 
-/* Steps */
 .steps{display:flex;gap:5px;margin-bottom:22px;}
 .step{height:3px;border-radius:2px;flex:1;background:var(--border);transition:background 0.4s,transform 0.3s var(--sp);}
 .step.on{background:var(--p);transform:scaleY(1.6);}
- 
-/* Panel header */
 .phd{margin-bottom:22px;}
 .phd h2{font-family:var(--fh);font-size:19px;font-weight:700;letter-spacing:-0.3px;color:#fff;margin-bottom:5px;}
 .phd p{font-size:13px;color:var(--mu);}
- 
-/* ─── FIELDS ─── */
+
+/* FIELDS */
 .field{margin-bottom:13px;}
 .fl{display:block;font-size:11px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--mu);margin-bottom:7px;}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px;}
+.input-wrap{position:relative;}
+.input-wrap input,.input-wrap select{width:100%;padding:11px 40px 11px 14px;background:rgba(0,0,0,0.28);border:1px solid var(--border);border-radius:var(--rs);color:var(--tx);font-family:var(--fd);font-size:14px;outline:none;appearance:none;-webkit-appearance:none;transition:border-color 0.22s,box-shadow 0.22s,background 0.22s;}
+.input-wrap input::placeholder{color:var(--su);}
+.input-wrap input:focus,.input-wrap select:focus{border-color:var(--bp);box-shadow:0 0 0 3px var(--pd);background:rgba(0,245,180,0.022);}
+.input-wrap select option{background:#0a0e1a;}
+.toggle-pw{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--mu);font-size:13px;transition:color 0.18s;background:none;border:none;padding:2px;}
+.toggle-pw:hover{color:var(--p);}
+
+/* Availability indicator */
+.avail-row{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;}
+.avail-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background 0.2s;}
+.avail-dot.checking{background:var(--gold);animation:blink 1s infinite;}
+.avail-dot.ok{background:var(--p);}
+.avail-dot.taken{background:var(--red);}
+
+/* Password strength */
+.pw-bars{display:flex;gap:4px;margin-top:7px;}
+.pw-bar{height:3px;flex:1;border-radius:3px;background:var(--border);transition:background 0.3s;}
+.pw-bar.weak{background:var(--red);}
+.pw-bar.mid{background:var(--gold);}
+.pw-bar.strong{background:var(--p);}
+.pw-lbl{font-size:10.5px;color:var(--mu);margin-top:4px;transition:color 0.2s;}
+
+/* Hints */
+.hint{font-size:11px;color:var(--mu);margin-top:5px;line-height:1.55;}
+.hint.warn{color:var(--gold);}
+.hint.good{color:var(--p);}
+.hint.err{color:var(--red);}
+
+/* Opt badge */
 .opt-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .opt-tag{font-size:9px;padding:2px 8px;border-radius:var(--rp);background:var(--goldd);color:var(--gold);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
-input,select{
-  width:100%;padding:11px 14px;
-  background:rgba(0,0,0,0.28);
-  border:1px solid var(--border);
-  border-radius:var(--rs);
-  color:var(--tx);
-  font-family:var(--fd);font-size:14px;
-  outline:none;appearance:none;-webkit-appearance:none;
-  transition:border-color 0.22s,box-shadow 0.22s,background 0.22s;
-}
-input::placeholder{color:var(--su);}
-input:focus,select:focus{border-color:var(--border-p);box-shadow:0 0 0 3px var(--pd);background:rgba(0,245,180,0.022);}
-select option{background:#0a0e1a;color:var(--tx);}
- 
-/* Privacy note */
-.pnote{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--blued);border:1px solid rgba(91,159,255,0.14);border-radius:9px;margin-top:7px;font-size:11.5px;color:rgba(229,237,248,0.6);line-height:1.6;}
-.pnote-i{flex-shrink:0;font-size:13px;margin-top:1px;}
- 
-/* ─── BUTTONS ─── */
+
+/* PNOTE */
+.pnote{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.18);border-radius:9px;margin-top:6px;font-size:11.5px;color:rgba(255,209,102,0.82);line-height:1.6;}
+
+/* BUTTONS */
 .btn{width:100%;padding:13.5px;border:none;border-radius:var(--rs);font-family:var(--fh);font-size:13px;font-weight:700;letter-spacing:0.4px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.22s;}
-.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,0.07),transparent);opacity:0;transition:opacity 0.18s;}
-.btn:hover::after{opacity:1;}
-/* Shine sweep */
 .btn::before{content:'';position:absolute;top:0;left:-100%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);transform:skewX(-18deg);transition:left 0.55s;}
 .btn:hover::before{left:180%;}
-.btn-p{background:linear-gradient(135deg,var(--p) 0%,#00c9a2 100%);color:#03050a;box-shadow:0 5px 24px rgba(0,245,180,0.2);margin-top:7px;}
+.btn-p{background:linear-gradient(135deg,var(--p),#00c9a2);color:#03050a;box-shadow:0 5px 24px rgba(0,245,180,0.2);margin-top:7px;}
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,245,180,0.35);}
-.btn-p:active{transform:translateY(0) scale(0.98);}
+.btn-p:active{transform:scale(0.98);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#e6a817);color:#03050a;box-shadow:0 5px 22px rgba(255,209,102,0.2);margin-top:7px;}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,209,102,0.38);}
 .btn-ghost{background:transparent;color:var(--mu);border:1px solid var(--border);margin-top:9px;font-size:12.5px;}
-.btn-ghost:hover{color:var(--tx);border-color:rgba(255,255,255,0.12);background:var(--card2);}
-/* Loading */
+.btn-ghost:hover{color:var(--tx);border-color:rgba(255,255,255,0.12);background:var(--ch);}
 .btn.ld{pointer-events:none;opacity:0.7;}
 .btn.ld .bl{opacity:0;}
 .btn.ld::after{content:'';position:absolute;width:15px;height:15px;border:2px solid rgba(3,5,10,0.25);border-top-color:#03050a;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);animation:spin 0.65s linear infinite;background:transparent;}
-.btn-p.ld::after{border-top-color:#03050a;}
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
- 
-/* Divider */
 .div{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--su);font-size:12px;}
 .div::before,.div::after{content:'';flex:1;height:1px;background:var(--border);}
- 
-/* ─── TERMS ─── */
-.terms-box{height:128px;overflow-y:auto;background:rgba(0,0,0,0.22);border:1px solid var(--border);border-radius:var(--rs);padding:13px 15px;font-size:12.5px;line-height:1.75;color:rgba(229,237,248,0.52);margin-bottom:14px;}
+.lnk{color:var(--p);cursor:pointer;font-size:13px;font-weight:600;}
+.lnk:hover{text-decoration:underline;}
+
+/* TERMS */
+.terms-box{height:120px;overflow-y:auto;background:rgba(0,0,0,0.22);border:1px solid var(--border);border-radius:var(--rs);padding:13px 15px;font-size:12.5px;line-height:1.75;color:rgba(229,237,248,0.52);margin-bottom:14px;}
 .terms-box::-webkit-scrollbar{width:4px;}
 .terms-box::-webkit-scrollbar-thumb{background:rgba(0,245,180,0.22);border-radius:4px;}
-.terms-title{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px;}
-.chk-row{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--pd);border:1px solid rgba(0,245,180,0.17);border-radius:var(--rs);margin-bottom:4px;cursor:pointer;transition:background 0.18s,border-color 0.18s;}
-.chk-row:hover{background:var(--pg);border-color:rgba(0,245,180,0.3);}
+.chk-row{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--pd);border:1px solid rgba(0,245,180,0.17);border-radius:var(--rs);margin-bottom:4px;cursor:pointer;transition:background 0.18s;}
+.chk-row:hover{background:var(--pg);}
 .chk-w{position:relative;width:22px;height:22px;flex-shrink:0;}
 .chk-w input{position:absolute;opacity:0;width:0;height:0;}
 .chk-vis{width:22px;height:22px;border-radius:6px;border:2px solid rgba(0,245,180,0.32);background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;transition:all 0.18s;}
@@ -187,12 +145,34 @@ select option{background:#0a0e1a;color:var(--tx);}
 .chk-w input:checked+.chk-vis::after{opacity:1;}
 .chk-lbl{font-size:13.5px;font-weight:500;color:var(--tx);line-height:1.4;}
 .chk-lbl em{color:var(--p);font-style:normal;}
- 
-/* Note box */
-.nbox{display:flex;align-items:flex-start;gap:9px;padding:11px 14px;background:var(--goldd);border:1px solid rgba(255,209,102,0.16);border-radius:9px;margin-top:13px;font-size:12px;color:rgba(255,209,102,0.82);line-height:1.6;}
-.ni{font-size:14px;flex-shrink:0;margin-top:1px;}
- 
-/* ─── INFO CARDS ─── */
+
+/* ═══ SECURITY KEY MODAL ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(14px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.22s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.sk-modal{background:#070c16;border:1px solid rgba(255,209,102,0.28);border-radius:22px;padding:32px 28px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(255,209,102,0.07);transform:scale(0.9) translateY(12px);transition:transform 0.28s var(--eo);position:relative;overflow:hidden;}
+.modal-overlay.show .sk-modal{transform:scale(1) translateY(0);}
+.sk-modal::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.5;}
+.sk-icon{font-size:44px;text-align:center;margin-bottom:13px;}
+.sk-title{font-family:var(--fh);font-size:17px;font-weight:900;color:var(--gold);text-align:center;margin-bottom:7px;}
+.sk-sub{font-size:13px;color:var(--mu);text-align:center;line-height:1.65;margin-bottom:20px;}
+.sk-key-box{background:rgba(255,209,102,0.07);border:2px solid rgba(255,209,102,0.3);border-radius:14px;padding:18px 16px;text-align:center;margin-bottom:18px;position:relative;}
+.sk-key-label{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;}
+.sk-key-val{font-family:var(--fh);font-size:20px;font-weight:900;color:#fff;letter-spacing:3px;word-break:break-all;line-height:1.35;user-select:all;}
+.sk-copy-btn{position:absolute;top:9px;right:9px;width:28px;height:28px;border-radius:7px;background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.22);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.18s;}
+.sk-copy-btn:hover{background:rgba(255,209,102,0.24);}
+.sk-warn{background:var(--redd);border:1px solid rgba(255,91,91,0.22);border-radius:11px;padding:13px 15px;margin-bottom:18px;font-size:12.5px;color:rgba(255,91,91,0.9);line-height:1.65;}
+.sk-warn b{color:var(--red);}
+.sk-chk-row{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.18);border-radius:11px;cursor:pointer;margin-bottom:15px;transition:background 0.18s;}
+.sk-chk-row:hover{background:rgba(255,209,102,0.11);}
+.sk-cb{width:21px;height:21px;border-radius:6px;border:2px solid rgba(255,209,102,0.4);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.18s;margin-top:1px;}
+.sk-cb.on{background:var(--gold);border-color:var(--gold);}
+.sk-cb.on::after{content:'✓';font-size:11px;font-weight:900;color:#03050a;}
+.sk-cb-lbl{font-size:13px;line-height:1.5;color:var(--tx);}
+.sk-confirm-btn{width:100%;padding:14px;border:none;border-radius:11px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),#e6a817);color:#03050a;box-shadow:0 5px 22px rgba(255,209,102,0.25);transition:all 0.22s;}
+.sk-confirm-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,209,102,0.4);}
+.sk-confirm-btn:disabled{opacity:0.42;cursor:not-allowed;transform:none;}
+
+/* INFO CARDS */
 .ic{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;margin-bottom:14px;transition:border-color 0.3s;}
 .ic:hover{border-color:rgba(255,255,255,0.095);}
 .ic-title{display:flex;align-items:center;gap:10px;font-family:var(--fh);font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;}
@@ -201,8 +181,8 @@ select option{background:#0a0e1a;color:var(--tx);}
 .ic-body a{color:var(--p);text-decoration:none;}
 .ic-body a:hover{text-decoration:underline;}
 .ic-sig{margin-top:13px;font-size:13.5px;color:var(--p);font-weight:600;}
- 
-/* WA card */
+
+/* WA CARD */
 .wa{width:100%;background:linear-gradient(135deg,rgba(37,211,102,0.06),rgba(0,245,180,0.04));border:1px solid rgba(37,211,102,0.16);border-radius:var(--r);padding:26px 22px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
 .wa::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(37,211,102,0.06),transparent 60%);}
 .wa-t{font-family:var(--fh);font-size:17px;font-weight:700;color:#fff;margin-bottom:9px;position:relative;}
@@ -210,54 +190,53 @@ select option{background:#0a0e1a;color:var(--tx);}
 .wa-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 26px;background:linear-gradient(135deg,#25d366,#1da851);border-radius:var(--rp);text-decoration:none;color:#fff;font-family:var(--fh);font-size:13px;font-weight:700;box-shadow:0 5px 22px rgba(37,211,102,0.28);transition:all 0.22s;position:relative;}
 .wa-btn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(37,211,102,0.42);}
 .wa-n{margin-top:11px;font-size:11px;color:rgba(229,237,248,0.32);position:relative;}
- 
-/* ─── FOOTER ─── */
+
+/* FOOTER */
 .ft{width:100%;margin-top:6px;padding-bottom:18px;text-align:center;}
 .ft-links{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
 .ft-link{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--rp);background:var(--card);border:1px solid var(--border);text-decoration:none;font-size:12.5px;font-weight:500;transition:all 0.18s;}
-.ft-link.m{color:var(--p);}
-.ft-link.m:hover{background:var(--pd);border-color:rgba(0,245,180,0.24);}
-.ft-link.ig{color:#e1306c;}
-.ft-link.ig:hover{background:rgba(225,48,108,0.07);border-color:rgba(225,48,108,0.26);}
+.ft-link.m{color:var(--p);}.ft-link.m:hover{background:var(--pd);border-color:rgba(0,245,180,0.24);}
+.ft-link.ig{color:#e1306c;}.ft-link.ig:hover{background:rgba(225,48,108,0.07);border-color:rgba(225,48,108,0.26);}
 .ft-copy{font-size:11.5px;color:var(--su);}
- 
-/* ─── TOAST ─── */
+
+/* TOAST */
 .th{position:fixed;top:22px;right:22px;display:flex;flex-direction:column;gap:9px;z-index:9999;pointer-events:none;}
-.tn{display:flex;align-items:center;gap:11px;padding:12px 17px;border-radius:var(--rs);background:rgba(7,12,22,0.96);backdrop-filter:blur(20px);border:1px solid var(--border);border-left:3px solid;box-shadow:0 14px 44px rgba(0,0,0,0.5);min-width:240px;pointer-events:all;animation:tIn 0.4s var(--sp);position:relative;overflow:hidden;}
-.tn.ok{border-left-color:var(--p);}
-.tn.err{border-left-color:var(--rose);}
-.tn.hd{animation:tOut 0.28s ease forwards;}
+.tn{display:flex;align-items:center;gap:11px;padding:12px 17px;border-radius:var(--rs);background:rgba(7,12,22,0.97);backdrop-filter:blur(20px);border:1px solid var(--border);border-left:3px solid;box-shadow:0 14px 44px rgba(0,0,0,0.5);min-width:240px;pointer-events:all;animation:tIn 0.4s var(--sp);position:relative;overflow:hidden;}
+.tn.ok{border-left-color:var(--p);}.tn.err{border-left-color:var(--rose);}.tn.info{border-left-color:var(--blue);}.tn.gold{border-left-color:var(--gold);}
+.tn.hiding{animation:tOut 0.28s ease forwards;}
 @keyframes tIn{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
 @keyframes tOut{to{transform:translateX(110%);opacity:0;}}
-.ti{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.ti{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
 .tn.ok .ti{background:rgba(0,245,180,0.12);color:var(--p);}
-.tn.err .ti{background:rgba(255,107,157,0.12);color:var(--rose);}
-.tm{font-size:13px;font-weight:500;line-height:1.4;flex:1;}
-.tb{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:bshrink 3.2s linear forwards;}
-.tn.ok .tb{background:var(--p);}
-.tn.err .tb{background:var(--rose);}
+.tn.err .ti{background:var(--redd);color:var(--red);}
+.tn.info .ti{background:var(--blued);color:var(--blue);}
+.tn.gold .ti{background:var(--goldd);color:var(--gold);}
+.tm{font-size:12.5px;font-weight:500;line-height:1.4;flex:1;}
+.tb{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:bshrink 3.5s linear forwards;}
+.tn.ok .tb{background:var(--p);}.tn.err .tb{background:var(--rose);}.tn.info .tb{background:var(--blue);}.tn.gold .tb{background:var(--gold);}
 @keyframes bshrink{from{transform:scaleX(1);}to{transform:scaleX(0);}}
- 
-/* ─── CURSOR GLOW ─── */
+
 .cg{position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,180,0.035) 0%,transparent 60%);pointer-events:none;z-index:0;transform:translate(-50%,-50%);will-change:left,top;transition:left 0.06s linear,top 0.06s linear;}
 @media(hover:none){.cg{display:none;}}
 @media(max-width:480px){.card{padding:24px 18px 20px;}.wordmark{font-size:30px;}.frow{grid-template-columns:1fr;}.page{padding:22px 14px 60px;}}
 </style>
 </head>
 <body>
- 
+
 <div class="cg" id="cg"></div>
 <div class="bg"><div class="bg-m"></div><div class="bg-g"></div></div>
- 
+
 <div class="page">
 <div class="scene">
- 
+
+  <!-- LOGO -->
   <div class="logo-area">
     <div class="live-pill"><div class="live-dot"></div><span class="live-text">Academic Portal</span></div>
     <div class="wordmark">KL <span class="hollow">STUDY</span> HUB</div>
     <div class="tagline">Your gateway to shared knowledge</div>
   </div>
- 
+
+  <!-- QUOTE -->
   <div class="q-box">
     <div class="q-line"></div>
     <div class="q-txt" id="qT">Loading…</div>
@@ -267,30 +246,44 @@ select option{background:#0a0e1a;color:var(--tx);}
       <button class="q-btn" onclick="nQ()">▼</button>
     </div>
   </div>
- 
+
+  <!-- CARD -->
   <div class="card">
- 
-    <!-- LOGIN -->
-    <div class="panel active" id="pL">
+
+    <!-- ═══ LOGIN ═══ -->
+    <div class="panel active" id="pLogin">
       <div class="steps"><div class="step on"></div></div>
-      <div class="phd"><h2>Welcome back</h2><p>Sign in with your student credentials</p></div>
-      <div class="field"><label class="fl">Student ID</label><input id="iId" placeholder="e.g. 2100032XXX" autocomplete="username"></div>
-      <div class="field"><label class="fl">Password</label><input id="iPw" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="btn btn-p" onclick="doL(this)"><span class="bl">Sign In →</span></button>
+      <div class="phd"><h2>Welcome back</h2><p>Sign in with your username and password</p></div>
+      <div class="field">
+        <label class="fl">Username</label>
+        <div class="input-wrap"><input id="lUser" placeholder="your_username" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label class="fl">Password</label>
+        <div class="input-wrap">
+          <input id="lPw" type="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="toggle-pw" onclick="tPw('lPw',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-p" onclick="doLogin(this)"><span class="bl">Sign In →</span></button>
       <div class="div">or</div>
-      <button class="btn btn-ghost" onclick="gP('pT')">Create New Account</button>
+      <button class="btn btn-ghost" onclick="goP('pTerms')">Create New Account</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span class="lnk" onclick="goP('pForgot')">Forgot password?</span>
+      </div>
     </div>
- 
-    <!-- TERMS -->
-    <div class="panel" id="pT">
+
+    <!-- ═══ TERMS ═══ -->
+    <div class="panel" id="pTerms">
       <div class="steps"><div class="step on"></div><div class="step"></div></div>
       <div class="phd"><h2>Terms &amp; Conditions</h2><p>Please read carefully before joining</p></div>
       <div class="terms-box">
-        <div class="terms-title">KL Study Hub — Terms &amp; Conditions</div>
-        Only valid students with approved IDs are allowed.<br><br>
-        Users must keep login credentials secure. Sharing credentials is discouraged. While we store data securely, misuse due to shared credentials is the user's responsibility.<br><br>
-        Do not upload harmful, illegal, or copyrighted content.<br><br>
+        <b style="color:var(--tx);">KL Study Hub — Terms &amp; Conditions</b><br><br>
+        Only valid KL University students are allowed.<br><br>
+        Keep your credentials secure. You are responsible for your account activity.<br><br>
+        Do not share harmful, illegal, or copyrighted content.<br><br>
         Admins can approve, reject, or remove users and resources at any time.<br><br>
+        The DM and chat features are for educational use only and are monitored for community safety.<br><br>
         This platform is provided "as is" for academic purposes only.<br><br>
         By continuing, you acknowledge and agree to all terms above.
       </div>
@@ -298,178 +291,475 @@ select option{background:#0a0e1a;color:var(--tx);}
         <div class="chk-w"><input type="checkbox" id="chk"><div class="chk-vis"></div></div>
         <div class="chk-lbl">I have read and agree to all <em>Terms &amp; Conditions</em></div>
       </label>
-      <button class="btn btn-p" onclick="doN()" style="margin-top:16px;"><span class="bl">Continue →</span></button>
-      <button class="btn btn-ghost" onclick="gP('pL')">← Back to Sign In</button>
+      <button class="btn btn-p" onclick="doNext()" style="margin-top:16px;"><span class="bl">Continue →</span></button>
+      <button class="btn btn-ghost" onclick="goP('pLogin')">← Back to Sign In</button>
     </div>
- 
-    <!-- SIGNUP -->
-    <div class="panel" id="pS">
+
+    <!-- ═══ SIGNUP ═══ -->
+    <div class="panel" id="pSignup">
       <div class="steps"><div class="step on"></div><div class="step on"></div></div>
       <div class="phd"><h2>Create Account</h2><p>Fill in your details to request access</p></div>
+
       <div class="field">
         <div class="opt-row"><label class="fl" style="margin-bottom:0;">Full Name</label><span class="opt-tag">Optional</span></div>
-        <input id="iNm" placeholder="e.g. Rohit ">
-        <div class="pnote"><span class="pnote-i">ℹ️</span><span>Your name will be <strong>visible to all students</strong> on the leaderboard. Leave blank to show only your Student ID.</span></div>
+        <div class="input-wrap"><input id="sName" placeholder="e.g. Hemanth Paladugula"></div>
+        <div class="pnote">ℹ️ &nbsp;Your name will be <b>visible on the leaderboard</b>. Leave blank to show only your username.</div>
       </div>
-      <div class="field"><label class="fl">Student ID *</label><input id="iSid" placeholder="e.g. 2500032XXX" autocomplete="username"></div>
-      <div class="field"><label class="fl">Password *</label><input id="iSpw" type="password" placeholder="Choose a strong password" autocomplete="new-password"></div>
+
+      <div class="field">
+        <label class="fl">Username *</label>
+        <div class="input-wrap"><input id="sUser" placeholder="e.g. hemanth_2025" autocapitalize="none" spellcheck="false" oninput="checkUser(this)"></div>
+        <div class="avail-row" id="availRow" style="display:none;">
+          <div class="avail-dot" id="availDot"></div>
+          <span id="availTxt" style="color:var(--mu);"></span>
+        </div>
+        <div class="hint">3–24 chars. Letters, numbers, underscore only. Used to log in.</div>
+      </div>
+
+      <div class="field">
+        <label class="fl">Password *</label>
+        <div class="input-wrap">
+          <input id="sPw" type="password" placeholder="at least 8 characters" autocomplete="new-password" oninput="checkPwStr(this.value)">
+          <button class="toggle-pw" onclick="tPw('sPw',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="pw-bars"><div class="pw-bar" id="pb1"></div><div class="pw-bar" id="pb2"></div><div class="pw-bar" id="pb3"></div><div class="pw-bar" id="pb4"></div></div>
+        <div class="pw-lbl" id="pwLbl">Enter a password</div>
+      </div>
+
+      <div class="field">
+        <label class="fl">Security Key * <span style="color:var(--gold);font-size:10px;">⭐ SAVE THIS</span></label>
+        <div class="input-wrap">
+          <input id="sSk" type="password" placeholder="choose a secret key (min 8 chars)" autocomplete="off">
+          <button class="toggle-pw" onclick="tPw('sSk',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="pnote" style="background:rgba(255,209,102,0.07);border-color:rgba(255,209,102,0.2);color:rgba(255,209,102,0.85);">⚠️ &nbsp;This key lets you <b>reset your password</b> if you forget it. <b>You must save it.</b> We cannot recover it for you.</div>
+      </div>
+
       <div class="frow">
-        <div class="field" style="margin-bottom:0;"><label class="fl">Branch *</label>
-          <select id="iBr"><option value="CSE">CSE</option><option value="ECE">ECE</option><option value="EEE">EEE</option><option value="AIDS">AIDS</option><option value="CSIT">CSIT</option></select>
+        <div class="field" style="margin-bottom:0;">
+          <label class="fl">Branch *</label>
+          <div class="input-wrap">
+            <select id="sBr"><option value="CSE">CSE</option><option value="ECE">ECE</option><option value="EEE">EEE</option><option value="AIDS">AIDS</option><option value="CSIT">CSIT</option></select>
+          </div>
         </div>
-        <div class="field" style="margin-bottom:0;"><label class="fl">Year *</label>
-          <select id="iYr"><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select>
+        <div class="field" style="margin-bottom:0;">
+          <label class="fl">Year *</label>
+          <div class="input-wrap">
+            <select id="sYr"><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select>
+          </div>
         </div>
       </div>
-      <button class="btn btn-p" onclick="doS(this)" style="margin-top:16px;"><span class="bl">Submit Request →</span></button>
-      <div class="nbox"><span class="ni">⏳</span><span>Admin approval takes up to 12 hours. Once approved, log in using the Student ID and Password you entered.</span></div>
-      <button class="btn btn-ghost" onclick="gP('pL')">← Back to Sign In</button>
+
+      <button class="btn btn-p" onclick="doSignup(this)" style="margin-top:16px;"><span class="bl">Submit Request →</span></button>
+      <div style="text-align:center;margin-top:11px;font-size:12px;color:var(--mu);">⏳ Admin approval takes up to 12 hours</div>
+      <button class="btn btn-ghost" onclick="goP('pLogin')">← Back to Sign In</button>
     </div>
- 
-  </div>
- 
+
+    <!-- ═══ FORGOT PASSWORD ═══ -->
+    <div class="panel" id="pForgot">
+      <div class="steps"><div class="step on"></div><div class="step"></div></div>
+      <div class="phd"><h2>Forgot Password</h2><p>Enter your username and security key to reset</p></div>
+      <div class="field">
+        <label class="fl">Username</label>
+        <div class="input-wrap"><input id="fUser" placeholder="your_username" autocapitalize="none" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label class="fl">Security Key</label>
+        <div class="input-wrap">
+          <input id="fSk" type="password" placeholder="your secret security key">
+          <button class="toggle-pw" onclick="tPw('fSk',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="hint">The secret key you chose when you created your account.</div>
+      </div>
+      <button class="btn btn-gold" onclick="doVerifySk(this)"><span class="bl">Verify Security Key →</span></button>
+      <button class="btn btn-ghost" onclick="goP('pLogin')">← Back to Sign In</button>
+    </div>
+
+    <!-- ═══ NEW PASSWORD ═══ -->
+    <div class="panel" id="pNewPw">
+      <div class="steps"><div class="step on"></div><div class="step on"></div></div>
+      <div class="phd"><h2>Set New Password</h2><p>Security key verified ✓ — choose your new password</p></div>
+      <div class="field">
+        <label class="fl">New Password</label>
+        <div class="input-wrap">
+          <input id="nPw" type="password" placeholder="at least 8 characters" autocomplete="new-password" oninput="checkPwStr2(this.value)">
+          <button class="toggle-pw" onclick="tPw('nPw',this)" tabindex="-1">👁</button>
+        </div>
+        <div class="pw-bars"><div class="pw-bar" id="pb21"></div><div class="pw-bar" id="pb22"></div><div class="pw-bar" id="pb23"></div><div class="pw-bar" id="pb24"></div></div>
+        <div class="pw-lbl" id="pwLbl2">Enter a new password</div>
+      </div>
+      <div class="field">
+        <label class="fl">Confirm Password</label>
+        <div class="input-wrap"><input id="cPw" type="password" placeholder="repeat your new password" autocomplete="new-password"></div>
+      </div>
+      <button class="btn btn-p" onclick="doResetPw(this)"><span class="bl">Reset Password →</span></button>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- INFO CARDS -->
   <div class="ic">
     <div class="ic-title">👋 A note from the founders</div>
     <div class="ic-body">
-      Hi, I'm <span class="h">Hemanth</span>.<br><br>
-      KL Study Hub is a student-led platform, founded by <span class="h">Praveen Reddy</span>, created to help students easily access academic resources — especially during exams, when finding the right materials can be challenging.<br><br>
-      We are students of <span class="h">KL University (Y25)</span>, and this initiative is built to support our peers and grow together through shared learning.<br><br>
-      For faculty reviewing this platform — this is a <span class="h">genuine student initiative</span> for academic support, not an official institutional website.<br><br>
-      Reach us if you forgot your password just send a mail with your username: <a href="mailto:klstudyhub45@gmail.com">klstudyhub45@gmail.com</a>
+      Hi, I'm <span class="h">Hemanth</span>. KL Study Hub is a student-led platform, co-founded with <span class="h">Praveen Reddy</span>, built to help KL University students access academic resources during exams.<br><br>
+      We are students of <span class="h">KL University (Y25)</span>. For faculty — this is a <span class="h">genuine student initiative</span>, not an official institutional website.<br><br>
+      Reach us: <a href="mailto:klstudyhubinfo@gmail.com">klstudyhubinfo@gmail.com</a>
       <div class="ic-sig">— Hemanth &amp; Praveen Reddy</div>
     </div>
   </div>
- 
-  <div class="ic">
-    <div class="ic-title">📖 About KL Study Hub</div>
-    <div class="ic-body">
-      KL Study Hub was built around one idea — make academic resources easier to find for every student.<br><br>
-      During exams, students struggle to find the right materials in time. This platform solves that by organizing resources in one place, making learning more efficient and less stressful.<br><br>
-      Developed by <span class="h">students of KL University (Y25)</span>, we built something that benefits every student who needs quick, reliable access to study materials.<br><br>
-      <span class="h">Built by students, for students.</span>
-    </div>
-  </div>
- 
+
   <div class="wa">
     <div class="wa-t">🎓 You don't have to study alone.</div>
-    <div class="wa-s">Hundreds of KL students are already sharing notes, solving doubts, and lifting each other up — every single day. Join your people.</div>
+    <div class="wa-s">Hundreds of KL students sharing notes, solving doubts, and lifting each other up — every single day.</div>
     <a href="https://chat.whatsapp.com/LWNBaMmNNuSH08ztjFg39B" class="wa-btn" target="_blank"><span>💬</span><span>Join our WhatsApp Community</span></a>
-    <div class="wa-n">Free · Students only · No spam, just support 🤝</div>
+    <div class="wa-n">Free · Students only · No spam 🤝</div>
   </div>
- 
+
   <div class="ft">
     <div class="ft-links">
-      <a href="mailto:klstudyhub45@gmail.com" class="ft-link m"><span>📧</span><span>klstudyhubinfo@gmail.com</span></a>
+      <a href="mailto:klstudyhubinfo@gmail.com" class="ft-link m"><span>📧</span><span>klstudyhubinfo@gmail.com</span></a>
       <a href="https://www.instagram.com/hemanth_paladugula" class="ft-link ig" target="_blank"><span>📸</span><span>@hemanth_paladugula</span></a>
       <a href="https://www.instagram.com/praveen_retotal_13" class="ft-link ig" target="_blank"><span>📸</span><span>@praveen_retotal_13</span></a>
     </div>
     <div class="ft-copy">KL Study Hub © 2026 · Built by students, for students</div>
   </div>
- 
+
+</div><!-- /scene -->
+</div><!-- /page -->
+
+<!-- SECURITY KEY MODAL -->
+<div class="modal-overlay" id="skModal">
+  <div class="sk-modal">
+    <div class="sk-icon">🔐</div>
+    <div class="sk-title">⚠️ Save Your Security Key</div>
+    <div class="sk-sub">This is the <b>only time</b> you will ever see this key. Store it somewhere safe before closing this window.</div>
+    <div class="sk-key-box">
+      <div class="sk-key-label">Your Security Key</div>
+      <div class="sk-key-val" id="skVal">—</div>
+      <button class="sk-copy-btn" onclick="copySk()" title="Copy">📋</button>
+    </div>
+    <div class="sk-warn">
+      <b>⚠️ CRITICAL WARNING:</b> If you lose this key, <b>we cannot help you recover your account.</b> Take a screenshot, write it down, or save it in a password manager — right now.
+    </div>
+    <label class="sk-chk-row" onclick="tSkCb()">
+      <div class="sk-cb" id="skCb"></div>
+      <div class="sk-cb-lbl">I have saved my Security Key in a safe place and understand it cannot be recovered if lost.</div>
+    </label>
+    <button class="sk-confirm-btn" id="skConfirmBtn" onclick="confirmSk()" disabled>
+      ✓ I Have Saved My Key — Continue to Sign In
+    </button>
+  </div>
 </div>
-</div>
- 
+
 <div class="th" id="th"></div>
- 
+
 <script>
+/* ═══ SUPABASE CONFIG ═══ */
 const{createClient}=supabase;
-const db=createClient("https://jkgkswsiunpzwnurqvjq.supabase.co","sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8");
- 
-// Cursor glow
+const db=createClient(
+  "https://jkgkswsiunpzwnurqvjq.supabase.co",
+  "sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8"
+);
+const EDGE_BASE="https://jkgkswsiunpzwnurqvjq.supabase.co/functions/v1";
+const ANON_KEY="sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8";
+
+/* ═══ CURSOR GLOW ═══ */
 const cg=document.getElementById('cg');
 document.addEventListener('mousemove',e=>{cg.style.left=e.clientX+'px';cg.style.top=e.clientY+'px';},{passive:true});
- 
-// Quotes
+
+/* ═══ QUOTES ═══ */
 const QS=[
   {t:"The quieter you become, the more you can hear.",a:"— Kali Linux Motto"},
   {t:"Security is not a product, but a process.",a:"— Bruce Schneier"},
-  {t:"In God we trust. All others we monitor.",a:"— NSA Saying"},
-  {t:"Think like a hacker to stop a hacker.",a:"— Unknown"},
-  {t:"Arguing that you don't care about privacy because you have nothing to hide is like saying you don't care about free speech.",a:"— Edward Snowden"},
   {t:"The expert in anything was once a beginner.",a:"— Helen Hayes"},
-  {t:"The beautiful thing about learning is nobody can take it away from you.",a:"— B.B. King"},
   {t:"Don't wish it were easier. Wish you were better.",a:"— Jim Rohn"},
   {t:"A smooth sea never made a skilled sailor.",a:"— Franklin D. Roosevelt"},
   {t:"Fall seven times, stand up eight.",a:"— Japanese Proverb"},
-  {t:"It always seems impossible until it's done.",a:"— Nelson Mandela"},
   {t:"Hard work beats talent when talent doesn't work hard.",a:"— Tim Notke"},
+  {t:"It always seems impossible until it's done.",a:"— Nelson Mandela"},
   {t:"In the middle of difficulty lies opportunity.",a:"— Albert Einstein"},
-  {t:"Success is not final, failure is not fatal — it is the courage to continue that counts.",a:"— Winston Churchill"},
   {t:"The more I learn, the more I realize how much I don't know.",a:"— Albert Einstein"},
   {t:"Study hard what interests you in the most undisciplined, irreverent and original manner possible.",a:"— Richard Feynman"},
+  {t:"Passwords are like underwear — change them often, don't share them.",a:"— Chris Pirillo"}
 ];
-const today=new Date().toDateString();
 let qi=parseInt(localStorage.getItem('qi')||'0');
-if(localStorage.getItem('qd')!==today){qi=Math.floor(Math.random()*QS.length);localStorage.setItem('qd',today);localStorage.setItem('qi',qi);}
 function rQ(){const q=QS[qi];const t=document.getElementById('qT');t.style.opacity='0';setTimeout(()=>{t.textContent=q.t;document.getElementById('qB').textContent=q.a;t.style.opacity='1';},150);t.style.transition='opacity 0.25s';}
 function nQ(){qi=(qi+1)%QS.length;localStorage.setItem('qi',qi);rQ();}
 function pQ(){qi=(qi-1+QS.length)%QS.length;localStorage.setItem('qi',qi);rQ();}
 rQ();
- 
-// Panels
-function gP(id){
+
+/* ═══ PANEL NAV ═══ */
+function goP(id){
   document.querySelectorAll('.panel').forEach(p=>{p.classList.remove('active');p.style.display='none';});
   const el=document.getElementById(id);el.style.display='block';el.offsetHeight;el.classList.add('active');
 }
 function tC(){const c=document.getElementById('chk');c.checked=!c.checked;}
-function doN(){if(!document.getElementById('chk').checked){toast('Please agree to the Terms first.','err');return;}gP('pS');}
- 
-// Toast
-function toast(msg,type='ok'){
-  const h=document.getElementById('th');const t=document.createElement('div');
-  t.className=`tn ${type}`;
-  t.innerHTML=`<div class="ti">${type==='ok'?'✓':'✕'}</div><div class="tm">${msg}</div><div class="tb"></div>`;
-  h.appendChild(t);
-  setTimeout(()=>{t.classList.add('hd');t.addEventListener('animationend',()=>t.remove());},3200);
+function doNext(){if(!document.getElementById('chk').checked){toast('Please agree to the Terms first.','err');return;}goP('pSignup');}
+
+/* ═══ TOGGLE PASSWORD ═══ */
+function tPw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈';}
+
+/* ═══ PASSWORD STRENGTH ═══ */
+function pwScore(pw){let s=0;if(pw.length>=8)s++;if(pw.length>=12)s++;if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;return Math.min(4,s);}
+function applyPwBars(pre,lId,pw){
+  const s=pwScore(pw);const lbls=['','Weak','Fair','Good','Strong'];const cls=['','weak','mid','mid','strong'];const lc=['','var(--red)','var(--gold)','var(--gold)','var(--p)'];
+  [1,2,3,4].forEach(i=>{const b=document.getElementById(pre+i);if(b)b.className='pw-bar'+(i<=s?' '+cls[s]:'');});
+  const l=document.getElementById(lId);if(l){l.textContent=pw?`Strength: ${lbls[s]||'Weak'}`:'Enter a password';l.style.color=lc[s]||'var(--mu)';}
 }
- 
-function calcLvl(p){if(p>=10000)return 10;if(p>=7500)return 9;if(p>=5000)return 8;if(p>=3500)return 7;if(p>=2000)return 6;if(p>=1000)return 5;if(p>=600)return 4;if(p>=300)return 3;if(p>=100)return 2;return 1;}
- 
-// Login
-async function doL(btn){
-  const id=document.getElementById('iId').value.trim();const pw=document.getElementById('iPw').value;
-  if(!id||!pw){toast('Please enter your Student ID and Password.','err');return;}
-  btn.classList.add('ld');
-  const{data,error}=await db.from('users').select('*').eq('id_no',id).eq('password',pw).single();
-  btn.classList.remove('ld');
-  if(error||!data){toast('Invalid Student ID or Password.','err');return;}
-  if(data.status!=='approved'){toast('Your account is pending admin approval.','err');return;}
-  const todayS=new Date().toDateString();const lastS=data.last_login?new Date(data.last_login).toDateString():null;
-  let st=data.streak_count||0,pts=data.points||0;
-  if(lastS!==todayS){
-    const y=new Date();y.setDate(y.getDate()-1);
-    st=lastS===y.toDateString()?st+1:1;pts+=10;
-    if(st===7)pts+=30;if(st===30)pts+=100;
-    const lv=calcLvl(pts);
-    await db.from('users').update({last_login:new Date().toISOString(),streak_count:st,points:pts,level:lv,longest_streak:Math.max(st,data.longest_streak||0)}).eq('id_no',id);
-    data.streak_count=st;data.points=pts;data.level=lv;
+function checkPwStr(pw){applyPwBars('pb','pwLbl',pw);}
+function checkPwStr2(pw){applyPwBars('pb2','pwLbl2',pw);}
+
+/* ═══ USERNAME AVAILABILITY ═══ */
+let availTimer=null;
+function checkUser(inp){
+  const val=inp.value.trim();
+  const row=document.getElementById('availRow');const dot=document.getElementById('availDot');const txt=document.getElementById('availTxt');
+  clearTimeout(availTimer);
+  if(!val){row.style.display='none';return;}
+  if(!/^[a-zA-Z0-9_]{3,24}$/.test(val)){
+    row.style.display='flex';dot.className='avail-dot taken';txt.textContent='3–24 chars: letters, numbers, underscore only';txt.style.color='var(--red)';return;
   }
-  toast('Login successful! Redirecting…','ok');localStorage.setItem('user',JSON.stringify(data));
-  setTimeout(()=>{window.location=['admin','ultra_admin','coadmin'].includes(data.role)?'admin.html':'dashboard.html';},1000);
+  row.style.display='flex';dot.className='avail-dot checking';txt.textContent='Checking…';txt.style.color='var(--gold)';
+  availTimer=setTimeout(async()=>{
+    const{data,error}=await db.rpc('check_username_available',{p_username:val});
+    if(error){txt.textContent='Could not check';txt.style.color='var(--mu)';return;}
+    if(data){dot.className='avail-dot ok';txt.textContent=`✓ "${val}" is available`;txt.style.color='var(--p)';}
+    else{dot.className='avail-dot taken';txt.textContent=`✗ "${val}" is already taken`;txt.style.color='var(--red)';}
+  },500);
 }
- 
-// Signup
-async function doS(btn){
-  const nm=document.getElementById('iNm').value.trim();const sid=document.getElementById('iSid').value.trim();const pw=document.getElementById('iSpw').value;const br=document.getElementById('iBr').value;const yr=document.getElementById('iYr').value;
-  if(!sid||!pw){toast('Please fill in Student ID and Password.','err');return;}
+
+/* ═══ TOAST ═══ */
+function toast(msg,type='ok'){
+  const icons={ok:'✓',err:'✕',info:'i',gold:'★'};
+  const t=document.createElement('div');t.className=`tn ${type}`;
+  t.innerHTML=`<div class="ti">${icons[type]||'i'}</div><div class="tm">${msg}</div><div class="tb"></div>`;
+  document.getElementById('th').appendChild(t);
+  setTimeout(()=>{t.classList.add('hiding');t.addEventListener('animationend',()=>t.remove());},3500);
+}
+
+/* ═══ SECURITY KEY MODAL ═══ */
+let savedSk='',skChecked=false;
+function showSkModal(key){
+  savedSk=key;skChecked=false;
+  document.getElementById('skVal').textContent=key;
+  document.getElementById('skCb').className='sk-cb';
+  document.getElementById('skConfirmBtn').disabled=true;
+  document.getElementById('skModal').classList.add('show');
+}
+function tSkCb(){skChecked=!skChecked;document.getElementById('skCb').className='sk-cb'+(skChecked?' on':'');document.getElementById('skConfirmBtn').disabled=!skChecked;}
+function copySk(){navigator.clipboard.writeText(savedSk).then(()=>toast('Security key copied! 📋','gold')).catch(()=>{});}
+function confirmSk(){document.getElementById('skModal').classList.remove('show');toast('Account created! Pending admin approval.','ok');goP('pLogin');}
+
+/* ═══ LEVEL CALC ═══ */
+function calcLevel(p){if(p>=10000)return 10;if(p>=7500)return 9;if(p>=5000)return 8;if(p>=3500)return 7;if(p>=2000)return 6;if(p>=1000)return 5;if(p>=600)return 4;if(p>=300)return 3;if(p>=100)return 2;return 1;}
+
+/* ══════════════════════════════════════
+   SIGN UP
+══════════════════════════════════════ */
+async function doSignup(btn){
+  const name=document.getElementById('sName').value.trim();
+  const username=document.getElementById('sUser').value.trim();
+  const pw=document.getElementById('sPw').value;
+  const sk=document.getElementById('sSk').value;
+  const branch=document.getElementById('sBr').value;
+  const year=document.getElementById('sYr').value;
+
+  if(!username||!/^[a-zA-Z0-9_]{3,24}$/.test(username)){toast('Username must be 3–24 letters, numbers or underscores','err');return;}
+  if(!pw||pw.length<8){toast('Password must be at least 8 characters','err');return;}
+  if(!sk||sk.length<8){toast('Security key must be at least 8 characters','err');return;}
+
   btn.classList.add('ld');
-  const row={id_no:sid,password:pw,branch:br,year:yr,role:'user',status:'pending',points:0,level:1,streak_count:0};
-  if(nm)row.name=nm;
-  const{error}=await db.from('users').insert([row]);
-  btn.classList.remove('ld');
-  if(error){toast('Error creating account. Please try again.','err');return;}
-  toast('Request sent! Awaiting admin approval.','ok');
-  ['iSid','iSpw','iNm'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('chk').checked=false;
-  setTimeout(()=>gP('pL'),1600);
+
+  try{
+    // 1. Check username availability
+    const{data:avail}=await db.rpc('check_username_available',{p_username:username});
+    if(!avail){toast(`Username "${username}" is already taken`,'err');btn.classList.remove('ld');return;}
+
+    // 2. Hash security key with bcrypt (client-side — never store plain)
+    const hashedSk=await bcrypt.hash(sk,10);
+
+    // 3. Insert into users table (status=pending, admin must approve)
+    const row={
+      id_no:username,          // keep id_no as username for backward compat
+      username:username,
+      password:pw,             // existing system stores plain password
+      name:name||null,
+      branch:branch,
+      year:year,
+      role:'user',
+      status:'pending',
+      points:0,
+      level:1,
+      streak_count:0,
+      security_key:hashedSk   // bcrypt hashed
+    };
+
+    const{error}=await db.from('users').insert([row]);
+    if(error){
+      if(error.message?.includes('duplicate')||error.message?.includes('unique')){
+        toast('Username already exists. Please choose another.','err');
+      } else {
+        toast('Signup failed: '+error.message,'err');
+      }
+      btn.classList.remove('ld');return;
+    }
+
+    btn.classList.remove('ld');
+
+    // 4. Clear form
+    ['sName','sUser','sPw','sSk'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('availRow').style.display='none';
+    checkPwStr('');
+
+    // 5. Show security key modal — user must acknowledge
+    showSkModal(sk);
+
+  }catch(err){
+    console.error('Signup error:',err);
+    toast('An unexpected error occurred','err');
+    btn.classList.remove('ld');
+  }
 }
- 
-// Enter key
+
+/* ══════════════════════════════════════
+   LOGIN
+══════════════════════════════════════ */
+async function doLogin(btn){
+  const username=document.getElementById('lUser').value.trim();
+  const pw=document.getElementById('lPw').value;
+  if(!username){toast('Please enter your username','err');return;}
+  if(!pw){toast('Please enter your password','err');return;}
+
+  btn.classList.add('ld');
+
+  try{
+    // Look up user by username OR id_no (backward compat)
+    const{data,error}=await db.from('users').select('*')
+      .or(`username.eq.${username},id_no.eq.${username}`)
+      .eq('password',pw)
+      .single();
+
+    btn.classList.remove('ld');
+
+    if(error||!data){toast('Invalid username or password','err');return;}
+    if(data.status!=='approved'){toast('Your account is pending admin approval.','err');return;}
+
+    // Streak + points update
+    const todayS=new Date().toDateString();
+    const lastS=data.last_login?new Date(data.last_login).toDateString():null;
+    let st=data.streak_count||0,pts=data.points||0;
+    if(lastS!==todayS){
+      const y=new Date();y.setDate(y.getDate()-1);
+      st=lastS===y.toDateString()?st+1:1;pts+=10;
+      if(st===7)pts+=30;if(st===30)pts+=100;
+      const lv=calcLevel(pts);
+      await db.from('users').update({last_login:new Date().toISOString(),streak_count:st,points:pts,level:lv,longest_streak:Math.max(st,data.longest_streak||0)}).eq('id_no',data.id_no);
+      data.streak_count=st;data.points=pts;data.level=lv;
+    }
+
+    toast('Signed in successfully! 🎉','ok');
+    localStorage.setItem('user',JSON.stringify(data));
+    setTimeout(()=>{
+      window.location=['admin','ultra_admin','coadmin'].includes(data.role)?'admin.html':'dashboard.html';
+    },900);
+
+  }catch(err){
+    console.error('Login error:',err);
+    toast('An unexpected error occurred','err');
+    btn.classList.remove('ld');
+  }
+}
+
+/* ══════════════════════════════════════
+   FORGOT PASSWORD — Step 1: Verify security key
+══════════════════════════════════════ */
+let resetState=null; // holds {id_no, reset_token} between panels
+
+async function doVerifySk(btn){
+  const username=document.getElementById('fUser').value.trim();
+  const sk=document.getElementById('fSk').value;
+  if(!username){toast('Please enter your username','err');return;}
+  if(!sk){toast('Please enter your security key','err');return;}
+
+  btn.classList.add('ld');
+
+  try{
+    const res=await fetch(`${EDGE_BASE}/verify-security-key`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':ANON_KEY},
+      body:JSON.stringify({username,security_key:sk})
+    });
+    const data=await res.json();
+    btn.classList.remove('ld');
+
+    if(!res.ok||!data.success){
+      toast(data.error||'Invalid username or security key','err');return;
+    }
+
+    resetState={id_no:data.id_no,reset_token:data.reset_token};
+    toast('Security key verified ✓','ok');
+    goP('pNewPw');
+
+  }catch(err){
+    console.error('Verify error:',err);
+    toast('Network error. Please try again.','err');
+    btn.classList.remove('ld');
+  }
+}
+
+/* ══════════════════════════════════════
+   FORGOT PASSWORD — Step 2: Set new password
+══════════════════════════════════════ */
+async function doResetPw(btn){
+  const newPw=document.getElementById('nPw').value;
+  const confirmPw=document.getElementById('cPw').value;
+
+  if(!newPw||newPw.length<8){toast('Password must be at least 8 characters','err');return;}
+  if(newPw!==confirmPw){toast('Passwords do not match','err');return;}
+  if(!resetState){toast('Session expired. Please start over.','err');goP('pForgot');return;}
+
+  btn.classList.add('ld');
+
+  try{
+    const res=await fetch(`${EDGE_BASE}/reset-password`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':ANON_KEY},
+      body:JSON.stringify({reset_token:resetState.reset_token,id_no:resetState.id_no,new_password:newPw})
+    });
+    const data=await res.json();
+    btn.classList.remove('ld');
+
+    if(!res.ok||!data.success){
+      toast(data.error||'Password reset failed. Please start over.','err');return;
+    }
+
+    resetState=null;
+    toast('Password reset successfully! You can now sign in.','ok');
+
+    // Pre-fill login username
+    document.getElementById('lUser').value=document.getElementById('fUser').value;
+    document.getElementById('fUser').value='';
+    document.getElementById('fSk').value='';
+    document.getElementById('nPw').value='';
+    document.getElementById('cPw').value='';
+    checkPwStr('');checkPwStr2('');
+    goP('pLogin');
+
+  }catch(err){
+    console.error('Reset error:',err);
+    toast('Network error. Please try again.','err');
+    btn.classList.remove('ld');
+  }
+}
+
+/* ═══ ENTER KEY ═══ */
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   const a=document.querySelector('.panel.active');if(!a)return;
-  if(a.id==='pL')doL(a.querySelector('.btn-p'));
-  else if(a.id==='pS')doS(a.querySelector('.btn-p'));
+  if(a.id==='pLogin')doLogin(a.querySelector('.btn-p'));
+  else if(a.id==='pSignup')doSignup(a.querySelector('.btn-p'));
+  else if(a.id==='pForgot')doVerifySk(a.querySelector('.btn-gold'));
+  else if(a.id==='pNewPw')doResetPw(a.querySelector('.btn-p'));
 });
 </script>
 </body>
