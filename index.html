@@ -9,6 +9,12 @@
 <title>KL Study Hub — Sign In</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<script>
+// bcryptjs exposes itself as dcodeIO.bcrypt — create a global alias
+if(typeof bcrypt==='undefined'&&typeof dcodeIO!=='undefined'&&dcodeIO.bcrypt){
+  window.bcrypt=dcodeIO.bcrypt;
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -576,7 +582,9 @@ async function doSignup(btn){
     if(!avail){toast(`Username "${username}" is already taken`,'err');btn.classList.remove('ld');return;}
 
     // 2. Hash security key with bcrypt (client-side — never store plain)
-    const hashedSk=await bcrypt.hash(sk,10);
+    const bcryptLib = window.bcrypt || (typeof dcodeIO!=='undefined' ? dcodeIO.bcrypt : null);
+    if(!bcryptLib){toast('Security hashing failed. Please refresh and try again.','err');btn.classList.remove('ld');return;}
+    const hashedSk=await bcryptLib.hash(sk,10);
 
     // 3. Insert into users table (status=pending, admin must approve)
     const row={
