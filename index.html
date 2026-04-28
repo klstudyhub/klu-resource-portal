@@ -681,42 +681,67 @@ async function doLogin(btn){
 /* ══════════════════════════════════════
    FORGOT PASSWORD — Step 1: Verify security key
 ══════════════════════════════════════ */
-let resetState=null; // holds {id_no, reset_token} between panels
+let resetState=null; // holds {id_no} between panels
 
+/* ══════════════════════════════════════
+   FORGOT PASSWORD — Step 1: Verify security key
+   Done entirely client-side with bcrypt — no Edge Function needed
+══════════════════════════════════════ */
 async function doVerifySk(btn){
   const username=document.getElementById('fUser').value.trim();
-  const sk=document.getElementById('fSk').value;
+  const sk=document.getElementById('fSk').value.trim();
   if(!username){toast('Please enter your username','err');return;}
   if(!sk){toast('Please enter your security key','err');return;}
 
   btn.classList.add('ld');
 
   try{
-    const res=await fetch(`${EDGE_BASE}/verify-security-key`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':ANON_KEY},
-      body:JSON.stringify({username,security_key:sk})
-    });
-    const data=await res.json();
-    btn.classList.remove('ld');
+    // 1. Fetch user row — get the stored hashed security key
+    const{data,error}=await db.from('users')
+      .select('id_no,username,security_key,status')
+      .or(`username.eq.${username},id_no.eq.${username}`)
+      .single();
 
-    if(!res.ok||!data.success){
-      toast(data.error||'Invalid username or security key','err');return;
+    if(error||!data){
+      toast('Invalid username or security key','err');
+      btn.classList.remove('ld');return;
     }
 
-    resetState={id_no:data.id_no,reset_token:data.reset_token};
+    if(!data.security_key){
+      toast('This account has no security key set. Please contact admin.','err');
+      btn.classList.remove('ld');return;
+    }
+
+    // 2. Compare plain text key against bcrypt hash — all in browser
+    const bcryptLib=window.bcrypt||(typeof dcodeIO!=='undefined'?dcodeIO.bcrypt:null);
+    if(!bcryptLib){
+      toast('Security library not loaded. Please refresh the page.','err');
+      btn.classList.remove('ld');return;
+    }
+
+    const isValid=await bcryptLib.compare(sk, data.security_key);
+
+    if(!isValid){
+      toast('Invalid username or security key','err');
+      btn.classList.remove('ld');return;
+    }
+
+    // 3. Valid — save id_no in memory and go to new password screen
+    resetState={id_no:data.id_no};
+    btn.classList.remove('ld');
     toast('Security key verified ✓','ok');
     goP('pNewPw');
 
   }catch(err){
     console.error('Verify error:',err);
-    toast('Network error. Please try again.','err');
+    toast('Something went wrong. Please try again.','err');
     btn.classList.remove('ld');
   }
 }
 
 /* ══════════════════════════════════════
    FORGOT PASSWORD — Step 2: Set new password
+   Updates password directly in users table
 ══════════════════════════════════════ */
 async function doResetPw(btn){
   const newPw=document.getElementById('nPw').value;
@@ -729,23 +754,23 @@ async function doResetPw(btn){
   btn.classList.add('ld');
 
   try{
-    const res=await fetch(`${EDGE_BASE}/reset-password`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':ANON_KEY},
-      body:JSON.stringify({reset_token:resetState.reset_token,id_no:resetState.id_no,new_password:newPw})
-    });
-    const data=await res.json();
+    // Update password directly in the users table
+    const{error}=await db.from('users')
+      .update({password:newPw})
+      .eq('id_no',resetState.id_no);
+
     btn.classList.remove('ld');
 
-    if(!res.ok||!data.success){
-      toast(data.error||'Password reset failed. Please start over.','err');return;
+    if(error){
+      toast('Failed to update password: '+error.message,'err');return;
     }
 
+    const usernameVal=document.getElementById('fUser').value;
     resetState=null;
     toast('Password reset successfully! You can now sign in.','ok');
 
-    // Pre-fill login username
-    document.getElementById('lUser').value=document.getElementById('fUser').value;
+    // Pre-fill login screen with username
+    document.getElementById('lUser').value=usernameVal;
     document.getElementById('fUser').value='';
     document.getElementById('fSk').value='';
     document.getElementById('nPw').value='';
@@ -755,7 +780,7 @@ async function doResetPw(btn){
 
   }catch(err){
     console.error('Reset error:',err);
-    toast('Network error. Please try again.','err');
+    toast('Something went wrong. Please try again.','err');
     btn.classList.remove('ld');
   }
 }
