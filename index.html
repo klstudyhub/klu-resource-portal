@@ -284,14 +284,32 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
       <div class="steps"><div class="step on"></div><div class="step"></div></div>
       <div class="phd"><h2>Terms &amp; Conditions</h2><p>Please read carefully before joining</p></div>
       <div class="terms-box">
-        <b style="color:var(--tx);">KL Study Hub — Terms &amp; Conditions</b><br><br>
-        Only valid KL University students are allowed.<br><br>
-        Keep your credentials secure. You are responsible for your account activity.<br><br>
-        Do not share harmful, illegal, or copyrighted content.<br><br>
-        Admins can approve, reject, or remove users and resources at any time.<br><br>
-        The DM and chat features are for educational use only and are monitored for community safety.<br><br>
-        This platform is provided "as is" for academic purposes only.<br><br>
-        By continuing, you acknowledge and agree to all terms above.
+        <b style="color:var(--tx);font-size:13px;">KL Study Hub — Terms &amp; Conditions</b><br><br>
+
+        <b style="color:var(--p);">1. Who Can Join</b><br>
+        Only current KL University students may register. By creating an account, you confirm you are a KL University student. Fake or impersonated accounts will be permanently removed.<br><br>
+
+        <b style="color:var(--p);">2. Account Security</b><br>
+        You are fully responsible for keeping your username, password, and security key safe. Do not share your login details with anyone. If your account is misused, you bear responsibility for all activity under it.<br><br>
+
+        <b style="color:var(--p);">3. What You Can & Cannot Share</b><br>
+        ✅ You may share: study notes, PYQs, lab files, assignments, and educational resources.<br>
+        ❌ Do not share: harmful, abusive, adult, illegal, or copyrighted content that you do not own. Violations will result in immediate account removal.<br><br>
+
+        <b style="color:var(--p);">4. Admin Rights</b><br>
+        Admins may approve, reject, or permanently remove any user or resource at their discretion — especially if rules are violated. Their decisions are final.<br><br>
+
+        <b style="color:var(--p);">5. Chat &amp; Messaging</b><br>
+        Branch Chat and Direct Messages (DMs) exist for educational discussions only. Conversations may be reviewed for community safety. Do not send spam, abuse, or off-topic messages.<br><br>
+
+        <b style="color:var(--p);">6. Security Key Warning</b><br>
+        During signup you will be issued a <b style="color:var(--gold);">Security Key</b>. This key is the <b>only way</b> to recover your password if you forget it. <b style="color:var(--red);">We cannot recover it for you under any circumstances.</b> Save it immediately — in a password manager, screenshot, or written note.<br><br>
+
+        <b style="color:var(--p);">7. Platform Disclaimer</b><br>
+        KL Study Hub is a student-led initiative, not an official KL University platform. It is provided "as is" for academic purposes. We are not responsible for any loss of data or account access.<br><br>
+
+        <b style="color:var(--p);">8. Your Agreement</b><br>
+        By ticking the checkbox below and creating an account, you confirm that you have read, understood, and agreed to all of the above terms. Failure to follow these rules may result in permanent removal from the platform.
       </div>
       <label class="chk-row" onclick="tC()">
         <div class="chk-w"><input type="checkbox" id="chk"><div class="chk-vis"></div></div>
@@ -309,7 +327,7 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
       <div class="field">
         <div class="opt-row"><label class="fl" style="margin-bottom:0;">Full Name</label><span class="opt-tag">Optional</span></div>
         <div class="input-wrap"><input id="sName" placeholder="e.g. Hemanth Paladugula"></div>
-        <div class="pnote">ℹ️ &nbsp;Your name will be <b>visible on the leaderboard</b>. Leave blank to show only your username.</div>
+        <div class="pnote" style="background:rgba(91,159,255,0.06);border-color:rgba(91,159,255,0.2);color:rgba(91,159,255,0.85);">ℹ️ &nbsp;If you enter your name, it will appear on the <b>public leaderboard</b>. If you leave it blank, only your username will be shown. Your name is never used for login.</div>
       </div>
 
       <div class="field">
@@ -325,7 +343,7 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
       <div class="field">
         <label class="fl">Password *</label>
         <div class="input-wrap">
-          <input id="sPw" type="password" placeholder="at least 8 characters" autocomplete="new-password" oninput="checkPwStr(this.value)">
+          <input id="sPw" type="password" placeholder="at least 6 characters" autocomplete="new-password" oninput="checkPwStr(this.value)">
           <button class="toggle-pw" onclick="tPw('sPw',this)" tabindex="-1">👁</button>
         </div>
         <div class="pw-bars"><div class="pw-bar" id="pb1"></div><div class="pw-bar" id="pb2"></div><div class="pw-bar" id="pb3"></div><div class="pw-bar" id="pb4"></div></div>
@@ -333,12 +351,14 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
       </div>
 
       <div class="field">
-        <label class="fl">Security Key * <span style="color:var(--gold);font-size:10px;">⭐ SAVE THIS</span></label>
+        <label class="fl">Security Key * <span style="color:var(--gold);font-size:10px;">⭐ MUST SAVE</span></label>
         <div class="input-wrap">
-          <input id="sSk" type="password" placeholder="choose a secret key (min 8 chars)" autocomplete="off">
+          <input id="sSk" type="password" placeholder="choose a secret key (min 6 chars)" autocomplete="off">
           <button class="toggle-pw" onclick="tPw('sSk',this)" tabindex="-1">👁</button>
         </div>
-        <div class="pnote" style="background:rgba(255,209,102,0.07);border-color:rgba(255,209,102,0.2);color:rgba(255,209,102,0.85);">⚠️ &nbsp;This key lets you <b>reset your password</b> if you forget it. <b>You must save it.</b> We cannot recover it for you.</div>
+        <div class="pnote" style="background:rgba(255,91,91,0.07);border-color:rgba(255,91,91,0.22);color:rgba(255,100,100,0.9);">
+          🔐 &nbsp;<b>What is a Security Key?</b> It's a secret phrase <b>you choose right now</b> — like a second password. If you ever forget your login password, this key is the <b>only way to reset it</b>. <b style="color:var(--red);">We cannot recover it for you.</b> Write it down or save it somewhere safe before submitting.
+        </div>
       </div>
 
       <div class="frow">
@@ -388,7 +408,7 @@ body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh
       <div class="field">
         <label class="fl">New Password</label>
         <div class="input-wrap">
-          <input id="nPw" type="password" placeholder="at least 8 characters" autocomplete="new-password" oninput="checkPwStr2(this.value)">
+          <input id="nPw" type="password" placeholder="at least 6 characters" autocomplete="new-password" oninput="checkPwStr2(this.value)">
           <button class="toggle-pw" onclick="tPw('nPw',this)" tabindex="-1">👁</button>
         </div>
         <div class="pw-bars"><div class="pw-bar" id="pb21"></div><div class="pw-bar" id="pb22"></div><div class="pw-bar" id="pb23"></div><div class="pw-bar" id="pb24"></div></div>
@@ -506,7 +526,7 @@ function doNext(){if(!document.getElementById('chk').checked){toast('Please agre
 function tPw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈';}
 
 /* ═══ PASSWORD STRENGTH ═══ */
-function pwScore(pw){let s=0;if(pw.length>=8)s++;if(pw.length>=12)s++;if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;return Math.min(4,s);}
+function pwScore(pw){let s=0;if(pw.length>=6)s++;if(pw.length>=10)s++;if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;return Math.min(4,s);}
 function applyPwBars(pre,lId,pw){
   const s=pwScore(pw);const lbls=['','Weak','Fair','Good','Strong'];const cls=['','weak','mid','mid','strong'];const lc=['','var(--red)','var(--gold)','var(--gold)','var(--p)'];
   [1,2,3,4].forEach(i=>{const b=document.getElementById(pre+i);if(b)b.className='pw-bar'+(i<=s?' '+cls[s]:'');});
@@ -571,8 +591,8 @@ async function doSignup(btn){
   const year=document.getElementById('sYr').value;
 
   if(!username||!/^[a-zA-Z0-9_]{3,24}$/.test(username)){toast('Username must be 3–24 letters, numbers or underscores','err');return;}
-  if(!pw||pw.length<8){toast('Password must be at least 8 characters','err');return;}
-  if(!sk||sk.length<8){toast('Security key must be at least 8 characters','err');return;}
+  if(!pw||pw.length<6){toast('Password must be at least 6 characters','err');return;}
+  if(!sk||sk.length<6){toast('Security key must be at least 6 characters','err');return;}
 
   btn.classList.add('ld');
 
@@ -747,7 +767,7 @@ async function doResetPw(btn){
   const newPw=document.getElementById('nPw').value;
   const confirmPw=document.getElementById('cPw').value;
 
-  if(!newPw||newPw.length<8){toast('Password must be at least 8 characters','err');return;}
+  if(!newPw||newPw.length<6){toast('Password must be at least 6 characters','err');return;}
   if(newPw!==confirmPw){toast('Passwords do not match','err');return;}
   if(!resetState){toast('Session expired. Please start over.','err');goP('pForgot');return;}
 
