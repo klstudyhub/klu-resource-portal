@@ -2036,6 +2036,23 @@ function subscribeChatBranch(branch){
     })
     .subscribe();
 }
+
+/* ════ GOOGLE DRIVE LINK CONVERTER ════ */
+(function convertGDriveLinks() {
+  const GD_RE = /https:\/\/drive\.google\.com\/file\/d\/([^\/]+)\/view[^"]*/g;
+  function convertUrl(url) {
+    return url.replace(GD_RE, (_, id) => `https://drive.google.com/uc?export=download&id=${id}`);
+  }
+  function processAnchors(root) {
+    (root.querySelectorAll ? root.querySelectorAll('a[href*="drive.google.com/file/d/"]') : []).forEach(a => {
+      a.href = convertUrl(a.href);
+    });
+  }
+  processAnchors(document);
+  new MutationObserver(mutations => {
+    mutations.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) processAnchors(n); }));
+  }).observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>
