@@ -635,6 +635,15 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
     <div class="ann-grid" id="annGrid"><div class="skel" style="height:96px;"></div><div class="skel" style="height:96px;"></div></div>
   </div>
 
+  <!-- LOST & FOUND PREVIEW -->
+  <div class="a2" style="margin-bottom:28px;">
+    <div class="sec-hd">
+      <h3>🔍 Lost &amp; Found</h3><span class="sec-cnt" id="lfPreviewCount">0</span>
+      <a href="lost-found.html" style="margin-left:auto;font-size:12px;color:var(--mu);text-decoration:none;display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:var(--rp);border:1px solid var(--border);background:var(--card);transition:all 0.18s;" onmouseover="this.style.color='var(--tx)'" onmouseout="this.style.color='var(--mu)'">View All <i class="fa fa-arrow-right" style="font-size:10px;"></i></a>
+    </div>
+    <div id="lfPreviewGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:10px;"></div>
+  </div>
+
   <!-- PINNED -->
   <div class="a3" id="pinnedSection" style="margin-bottom:28px;display:none;">
     <div class="sec-hd"><h3>📌 Pinned Resources</h3><span class="sec-cnt" id="pinnedCount">0</span></div>
@@ -2053,6 +2062,37 @@ function subscribeChatBranch(branch){
     mutations.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) processAnchors(n); }));
   }).observe(document.body, { childList: true, subtree: true });
 })();
+
+/* ════ LOST & FOUND PREVIEW WIDGET ════ */
+async function loadLostFound(){
+  const grid=document.getElementById('lfPreviewGrid');
+  const cnt=document.getElementById('lfPreviewCount');
+  try{
+    const{data}=await client.from('lost_found').select('*').eq('status','active').order('created_at',{ascending:false}).limit(3);
+    if(!data||!data.length){
+      grid.innerHTML=`<div style="font-size:12.5px;color:var(--mu);padding:9px 0;">No active posts yet. <a href="lost-found.html" style="color:var(--p);text-decoration:none;">Be the first to post!</a></div>`;
+      cnt.textContent='0';return;
+    }
+    cnt.textContent=data.length;
+    grid.innerHTML=data.map(p=>{
+      const isLost=p.type==='lost';
+      const dt=new Date(p.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+      return`<div style="background:var(--card);border:1px solid ${isLost?'rgba(255,91,91,0.18)':'rgba(0,245,180,0.18)'};border-radius:13px;padding:13px 15px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.2s;" onclick="window.location='lost-found.html'" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,${isLost?'var(--red)':'var(--p)'},transparent);"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+          <span style="padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:${isLost?'rgba(255,91,91,0.1)':'rgba(0,245,180,0.1)'};color:${isLost?'var(--red)':'var(--p)'}">${isLost?'❌ Lost':'✅ Found'}</span>
+          <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${p.item_name}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--mu);display:flex;gap:11px;flex-wrap:wrap;">
+          <span><i class="fa fa-location-dot" style="margin-right:3px;"></i>${p.location}</span>
+          <span><i class="fa fa-calendar" style="margin-right:3px;"></i>${dt}</span>
+        </div>
+        ${p.description?`<div style="font-size:11.5px;color:rgba(229,237,248,0.6);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.description}</div>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){grid.innerHTML='';cnt.textContent='0';}
+}
+loadLostFound();
 </script>
 </body>
 </html>
