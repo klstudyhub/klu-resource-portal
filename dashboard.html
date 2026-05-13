@@ -380,7 +380,7 @@ main{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:28px 22p
 .share-opt:hover{background:var(--ch);color:var(--tx);}
 
 /* FEED */
-.feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:11px;margin-bottom:38px;}
+.feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:11px;margin-bottom:16px;}
 .feed-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px 15px;display:flex;gap:11px;align-items:flex-start;transition:border-color 0.18s,transform 0.18s;}
 .feed-card:hover{border-color:rgba(0,245,180,0.16);transform:translateY(-2px);}
 .feed-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
@@ -388,6 +388,30 @@ main{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:28px 22p
 .feed-info{flex:1;overflow:hidden;}
 .feed-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
 .feed-meta{font-size:10.5px;color:var(--mu);display:flex;gap:5px;flex-wrap:wrap;}
+
+/* ── LIST VIEW ── */
+.feed-list{display:flex;flex-direction:column;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.feed-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,0.04);background:var(--card);transition:background 0.14s;}
+.feed-row:last-child{border-bottom:none;}
+.feed-row:hover{background:rgba(255,255,255,0.03);}
+.feed-row .feed-icon{width:28px;height:28px;border-radius:7px;font-size:12px;flex-shrink:0;}
+.feed-row .feed-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
+.feed-row .feed-meta{font-size:10px;color:var(--mu);display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:nowrap;}
+.feed-row .feed-acts{display:flex;gap:5px;align-items:center;flex-shrink:0;}
+.feed-row .icon-btn{width:28px;height:28px;font-size:11px;}
+
+/* ── VIEW TOGGLE + PAGINATION ── */
+.feed-toolbar{display:flex;align-items:center;gap:9px;margin-bottom:11px;flex-wrap:wrap;}
+.view-toggle{display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.vt-btn{padding:6px 11px;font-size:12px;cursor:pointer;background:none;border:none;color:var(--mu);font-family:var(--fh);transition:all 0.15s;}
+.vt-btn.active{background:var(--p);color:#fff;}
+.per-page-sel{padding:5px 9px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--tx);font-family:var(--fh);font-size:12px;cursor:pointer;}
+.feed-pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:28px;flex-wrap:wrap;}
+.pg-btn{padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--tx);font-size:12px;font-family:var(--fh);cursor:pointer;transition:all 0.15s;}
+.pg-btn:hover{background:rgba(255,255,255,0.08);}
+.pg-btn.active{background:var(--p);border-color:var(--p);color:#fff;font-weight:700;}
+.pg-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.pg-info{font-size:11.5px;color:var(--mu);padding:0 4px;}
 .feed-br{padding:2px 6px;border-radius:9px;background:var(--blued);color:var(--blue);font-size:9.5px;font-weight:600;}
 .feed-cat{padding:2px 6px;border-radius:9px;background:var(--purpled);color:var(--purple);font-size:9.5px;font-weight:600;}
 .feed-acts{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
@@ -638,8 +662,22 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
   </div>
 
   <!-- EXPLORE FEED -->
-  <div class="sec-hd a6" style="margin-top:6px;margin-bottom:13px;"><h3>🔥 Explore All Resources</h3><span class="sec-cnt" id="feedCount">0</span></div>
-  <div class="feed-grid a7" id="feedGrid"></div>
+  <div class="sec-hd a6" style="margin-top:6px;margin-bottom:10px;"><h3>🔥 Explore All Resources</h3><span class="sec-cnt" id="feedCount">0</span></div>
+  <div class="feed-toolbar a7">
+    <div class="view-toggle">
+      <button class="vt-btn active" id="vtGrid" onclick="setView('grid')" title="Grid view">⊞ Grid</button>
+      <button class="vt-btn" id="vtList" onclick="setView('list')" title="List view">☰ List</button>
+    </div>
+    <select class="per-page-sel" id="perPageSel" onchange="setPerPage(this.value)" title="Items per page">
+      <option value="12">12 per page</option>
+      <option value="24" selected>24 per page</option>
+      <option value="48">48 per page</option>
+      <option value="100">100 per page</option>
+    </select>
+    <span class="pg-info" id="feedPageInfo"></span>
+  </div>
+  <div id="feedGrid"></div>
+  <div class="feed-pagination" id="feedPagination"></div>
 
 </main>
 
@@ -965,7 +1003,7 @@ function renderAnn(anns){
   }).join("");
 }
 
-function onSearch(){renderBranches();renderFeed();}
+function onSearch(){feedPage=1;renderBranches();renderFeed();}
 function getFiltered(){
   const q=document.getElementById("searchInput").value.toLowerCase();
   const cat=document.getElementById("catFilter").value.toLowerCase();
@@ -1080,30 +1118,102 @@ function resItemHtml(r){
   </div>`;
 }
 
+/* ── FEED STATE ── */
+let feedView='grid', feedPage=1, feedPerPage=24;
+function setView(v){
+  feedView=v;feedPage=1;
+  document.getElementById('vtGrid').classList.toggle('active',v==='grid');
+  document.getElementById('vtList').classList.toggle('active',v==='list');
+  renderFeed();
+}
+function setPerPage(v){feedPerPage=parseInt(v);feedPage=1;renderFeed();}
+function goPage(p){feedPage=p;renderFeed();window.scrollTo({top:document.getElementById('feedGrid').offsetTop-80,behavior:'smooth'});}
+
 function renderFeed(){
   const filtered=getFiltered();
-  document.getElementById("feedCount").textContent=filtered.length;
+  const total=filtered.length;
+  document.getElementById("feedCount").textContent=total;
   const g=document.getElementById("feedGrid");
-  if(!filtered.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="ei">🔍</div>No resources found matching your search.</div>`;return;}
-  g.innerHTML=filtered.map(r=>{
-    const isFav=favs.includes(String(r.id));
-    return `<div class="feed-card">
-      <div class="feed-icon ${isPdf(r.link)?'fi-pdf':'fi-link'}">${isPdf(r.link)?'📄':'🔗'}</div>
-      <div class="feed-info">
-        <div class="feed-title" title="${r.title}">${r.title}</div>
+  const pgEl=document.getElementById("feedPagination");
+  const pgInfo=document.getElementById("feedPageInfo");
+
+  if(!total){
+    g.className='';
+    g.innerHTML=`<div class="empty"><div class="ei">🔍</div>No resources found matching your search.</div>`;
+    pgEl.innerHTML='';pgInfo.textContent='';return;
+  }
+
+  const totalPages=Math.ceil(total/feedPerPage);
+  if(feedPage>totalPages)feedPage=totalPages;
+  const start=(feedPage-1)*feedPerPage;
+  const end=Math.min(start+feedPerPage,total);
+  const page=filtered.slice(start,end);
+
+  pgInfo.textContent=`Showing ${start+1}–${end} of ${total}`;
+
+  if(feedView==='list'){
+    g.className='feed-list a7';
+    g.innerHTML=page.map(r=>{
+      const isFav=favs.includes(String(r.id));
+      const pdf=isPdf(r.link);
+      return `<div class="feed-row">
+        <div class="feed-icon ${pdf?'fi-pdf':'fi-link'}">${pdf?'📄':'🔗'}</div>
+        <div class="feed-title" title="${r.title}">${r.title}${r.pinned?'<span style="color:var(--gold);margin-left:5px;font-size:10px;">📌</span>':''}</div>
         <div class="feed-meta">
           <span class="feed-br">${r.branch||'—'}</span>
+          ${r.subject?`<span style="color:var(--mu);">· ${r.subject}</span>`:''}
           ${r.category?`<span class="feed-cat">${r.category}</span>`:''}
-          ${r.subject?`<span>${r.subject}</span>`:''}
         </div>
-      </div>
-      <div class="feed-acts">
-        ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
-        <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="Favourite"><i class="fa fa-star"></i></button>
-        <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\\'")}')"><i class="fa fa-comment"></i></button>
-      </div>
-    </div>`;
-  }).join("");
+        <div class="feed-acts">
+          ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
+          <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="Favourite"><i class="fa fa-star"></i></button>
+          <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\'")}')"><i class="fa fa-comment"></i></button>
+        </div>
+      </div>`;
+    }).join("");
+  } else {
+    g.className='feed-grid a7';
+    g.innerHTML=page.map(r=>{
+      const isFav=favs.includes(String(r.id));
+      const pdf=isPdf(r.link);
+      return `<div class="feed-card">
+        <div class="feed-icon ${pdf?'fi-pdf':'fi-link'}">${pdf?'📄':'🔗'}</div>
+        <div class="feed-info">
+          <div class="feed-title" title="${r.title}">${r.title}${r.pinned?'<span style="color:var(--gold);margin-left:5px;font-size:10px;">📌</span>':''}</div>
+          <div class="feed-meta">
+            <span class="feed-br">${r.branch||'—'}</span>
+            ${r.category?`<span class="feed-cat">${r.category}</span>`:''}
+            ${r.subject?`<span>${r.subject}</span>`:''}
+          </div>
+        </div>
+        <div class="feed-acts">
+          ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
+          <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="Favourite"><i class="fa fa-star"></i></button>
+          <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\'")}')"><i class="fa fa-comment"></i></button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // ── Pagination ──
+  if(totalPages<=1){pgEl.innerHTML='';return;}
+  let pgHTML='';
+  pgHTML+=`<button class="pg-btn" onclick="goPage(${feedPage-1})" ${feedPage===1?'disabled':''}>‹ Prev</button>`;
+  let pages=[];
+  if(totalPages<=7){for(let i=1;i<=totalPages;i++)pages.push(i);}
+  else{
+    pages=[1];
+    if(feedPage>3)pages.push('…');
+    for(let i=Math.max(2,feedPage-1);i<=Math.min(totalPages-1,feedPage+1);i++)pages.push(i);
+    if(feedPage<totalPages-2)pages.push('…');
+    pages.push(totalPages);
+  }
+  pages.forEach(p=>{
+    if(p==='…'){pgHTML+=`<span class="pg-info">…</span>`;}
+    else{pgHTML+=`<button class="pg-btn ${p===feedPage?'active':''}" onclick="goPage(${p})">${p}</button>`;}
+  });
+  pgHTML+=`<button class="pg-btn" onclick="goPage(${feedPage+1})" ${feedPage===totalPages?'disabled':''}>Next ›</button>`;
+  pgEl.innerHTML=pgHTML;
 }
 
 function toggleBranch(id){
