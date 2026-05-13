@@ -475,12 +475,6 @@ main{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:28px 22p
 .timer-reset:hover{color:var(--tx);}
 .timer-mode{display:flex;gap:8px;margin-bottom:14px;}
 
-.fr-block{background:rgba(255,91,91,0.08);color:var(--red);border:1px solid rgba(255,91,91,0.2);}
-.fr-block:hover{background:rgba(255,91,91,0.18);}
-.fr-unblock{background:rgba(255,209,102,0.08);color:var(--gold);border:1px solid rgba(255,209,102,0.2);}
-.fr-unblock:hover{background:rgba(255,209,102,0.18);}
-.fr-blocked-tag{padding:4px 9px;border-radius:var(--rp);background:var(--redd);color:var(--red);font-size:10.5px;font-weight:700;}
-
 /* EMPTY + SKELETON */
 .empty{text-align:center;padding:36px 18px;color:var(--mu);font-size:12.5px;}
 .empty .ei{font-size:28px;margin-bottom:9px;}
@@ -807,7 +801,6 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
     <div class="dtab active" id="frTab1" onclick="switchFrTab('friends')">Friends</div>
     <div class="dtab" id="frTab2" onclick="switchFrTab('requests')">Requests <span id="frReqCount" style="background:var(--redd);color:var(--red);padding:1px 6px;border-radius:9px;font-size:10px;font-weight:800;margin-left:3px;display:none;">0</span></div>
     <div class="dtab" id="frTab3" onclick="switchFrTab('find')">Find Students</div>
-    <div class="dtab" id="frTab4" onclick="switchFrTab('blocked')" style="color:var(--red);">🚫 Blocked</div>
   </div>
   <div class="d-search"><input id="frSearchInput" placeholder="Search…" oninput="onFrSearch()"></div>
   <!-- Friends list -->
@@ -816,8 +809,6 @@ footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-si
   <div class="d-body" id="frRequestsList" style="display:none;"></div>
   <!-- Find students -->
   <div class="d-body" id="frFindList" style="display:none;"></div>
-  <!-- Blocked list -->
-  <div class="d-body" id="frBlockedList" style="display:none;"></div>
 </div>
 
 <!-- DM DRAWER -->
@@ -1185,12 +1176,10 @@ async function loadComments(){
 async function submitComment(){
   const msg=document.getElementById("commentInput").value.trim();
   if(!msg){showToast("Please type a comment first","error");return;}
-  if(!activeResId){showToast("No resource selected","error");return;}
-  const btn=document.querySelector('.cmt-send');
-  if(btn)btn.disabled=true;
-  const{error}=await client.from("comments").insert([{resource_id:String(activeResId),user_id:user.id_no,user_name:user.name||user.id_no,message:msg,created_at:new Date().toISOString()}]);
-  if(btn)btn.disabled=false;
-  if(error){showToast("Failed to post comment: "+error.message,"error");console.error('Comment error:',error);return;}
+  if(msg.length<20){showToast("Comment must be at least 20 characters","error");return;}
+  if(!activeResId)return;
+  const{error}=await client.from("comments").insert([{resource_id:String(activeResId),user_id:user.id_no,user_name:user.name||user.id_no,message:msg}]);
+  if(error){showToast("Failed to post comment","error");return;}
   document.getElementById("commentInput").value="";
   await loadComments();
   await addPoints(15,'comment');
@@ -1350,7 +1339,7 @@ async function switchChatBranch(branch){
   if(chatSub){chatSub.unsubscribe();chatSub=null;}
   if(typingSub){typingSub.unsubscribe();typingSub=null;}
   try{
-    const{data:setting}=await client.from('chat_settings').select('*').eq('branch',branch).single();
+    const{data:setting}=await client.from('chat_settings').select('*').eq('branch',branch).maybeSingle();
     const disabled=setting&&!setting.is_active;
     document.getElementById('chatDisabledBanner').style.display=disabled?'block':'none';
     document.getElementById('chatInput').disabled=!!disabled;
@@ -1461,16 +1450,15 @@ async function sendMessage(){
   try{
     const{data:s}=await client.from('chat_settings').select('is_active').eq('branch',activeChatBranch).maybeSingle();
     if(s&&!s.is_active){showToast('Chat is disabled for this branch','error');return;}
-  }catch(e){console.warn('chat_settings check:',e);}
-  inp.value=';inp.style.height='auto';isTypingChat=false;
+  }catch(e){}
+  inp.value='';inp.style.height='auto';isTypingChat=false;
   const roomKey=chatRoomKey(activeChatBranch);
-  const yr=user.year?String(user.year):null;
   const{error}=await client.from('branch_chat').insert([{
-    room_key:roomKey,branch:activeChatBranch,year:yr,
+    room_key:roomKey,branch:activeChatBranch,year:user.year,
     user_id:user.id_no,user_name:user.name||user.id_no,
     message:msg,deleted:false
   }]);
-  if(error){console.error('branch_chat error:',JSON.stringify(error));showToast('Send failed: '+(error.message||error.code||'RLS policy blocked insert'),'error');}
+  if(error){showToast('Failed to send','error');console.error(error);}
 }
 
 async function loadResources(){return load();}
@@ -1483,12 +1471,12 @@ const AVC=['#00c9a2','#5b9fff','#b57bff','#ff9f43','#ff6b9d','#ffd166','#00d4ff'
 const YNS={"1":"1st Year","2":"2nd Year","3":"3rd Year","4":"4th Year"};
 function avc(id){return AVC[(id||'A').charCodeAt(0)%AVC.length];}
 
-let sameYearUsers=[],myFriends=[],pendingIn=[],pendingOut=[],blockedUsers=[],dmConvos=[],dmPeer=null,dmSub=null,dmUnread=0,frUnread=0;
+let sameYearUsers=[],myFriends=[],pendingIn=[],pendingOut=[],dmConvos=[],dmPeer=null,dmSub=null,dmUnread=0,frUnread=0;
 let popTimer=null,curFrTab='friends',dmLastDate='';
 
 async function initSocialSystem(){
   if(!user.year)return;
-  await Promise.all([loadSameYearUsers(),loadFriends(),loadBlockedUsers(),loadDMConvos()]);
+  await Promise.all([loadSameYearUsers(),loadFriends(),loadDMConvos()]);
   subscribeInbox();
   subscribeRequests();
 }
@@ -1514,13 +1502,6 @@ async function loadFriends(){
   pendingOut=data.filter(r=>r.from_id===user.id_no&&r.status==='pending').map(r=>r.to_id);
   frUnread=pendingIn.length;
   updateFrBadge(frUnread);
-}
-
-async function loadBlockedUsers(){
-  try{
-    const{data}=await client.from('blocked_users').select('blocked_id').eq('blocker_id',user.id_no);
-    blockedUsers=(data||[]).map(r=>r.blocked_id);
-  }catch(e){blockedUsers=[];}
 }
 
 async function loadDMConvos(){
@@ -1551,18 +1532,14 @@ function closeFriends(){
 }
 function switchFrTab(tab){
   curFrTab=tab;
-  const tabs=['friends','requests','find','blocked'];
-  tabs.forEach((t,i)=>{
-    const tabEl=document.getElementById(`frTab${i+1}`);
-    if(tabEl)tabEl.classList.toggle('active',t===tab);
-    const listEl=document.getElementById('fr'+(t.charAt(0).toUpperCase()+t.slice(1))+'List');
-    if(listEl)listEl.style.display=t===tab?'flex':'none';
+  ['friends','requests','find'].forEach((t,i)=>{
+    document.getElementById(`frTab${i+1}`).classList.toggle('active',t===tab);
+    document.getElementById('fr'+(t.charAt(0).toUpperCase()+t.slice(1))+'List').style.display=t===tab?'flex':'none';
   });
   const q=document.getElementById('frSearchInput').value.toLowerCase();
   if(tab==='friends')renderFriendsList(q);
   else if(tab==='requests')renderRequestsList();
-  else if(tab==='find')renderFindList(q);
-  else if(tab==='blocked')renderBlockedList();
+  else renderFindList(q);
 }
 function onFrSearch(){
   const q=document.getElementById('frSearchInput').value.toLowerCase();
@@ -1571,18 +1548,10 @@ function onFrSearch(){
 }
 function renderFriendsList(q=''){
   const box=document.getElementById('frFriendsList');
-  const list=sameYearUsers.filter(u=>myFriends.includes(u.id_no)&&!blockedUsers.includes(u.id_no)&&(q===''||(u.name||u.id_no).toLowerCase().includes(q)));
+  const list=sameYearUsers.filter(u=>myFriends.includes(u.id_no)&&(q===''||(u.name||u.id_no).toLowerCase().includes(q)));
   if(!list.length){box.innerHTML=`<div class="d-empty"><div class="dei">👥</div><div>No friends yet.<br><span style="font-size:12px;">Go to "Find Students" to add friends!</span></div></div>`;return;}
   box.innerHTML=list.map(u=>{const nm=u.name||u.id_no;const c=avc(u.id_no);
-    return`<div class="fr-item"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}</div></div><div class="fr-actions"><button class="fr-btn fr-accept" onclick="startDMWithFriend('${u.id_no}','${nm.replace(/'/g,"\\'")}','${u.branch}')">💬 Chat</button><button class="fr-btn fr-block" onclick="blockUser('${u.id_no}','${nm.replace(/'/g,"\\'")}')">🚫 Block</button></div></div>`;
-  }).join('');
-}
-function renderBlockedList(){
-  const box=document.getElementById('frBlockedList');
-  const list=sameYearUsers.filter(u=>blockedUsers.includes(u.id_no));
-  if(!list.length){box.innerHTML=`<div class="d-empty"><div class="dei">✅</div><div>No blocked users.<br><span style="font-size:12px;">You haven't blocked anyone.</span></div></div>`;return;}
-  box.innerHTML=list.map(u=>{const nm=u.name||u.id_no;const c=avc(u.id_no);
-    return`<div class="fr-item"><div class="fr-av" style="background:${c};opacity:0.5;">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name" style="color:var(--mu);">${nm}</div><div class="fr-meta">${u.branch} · <span class="fr-blocked-tag">Blocked</span></div></div><div class="fr-actions"><button class="fr-btn fr-unblock" onclick="unblockUser('${u.id_no}','${nm.replace(/'/g,"\\'")}')">↩ Unblock</button></div></div>`;
+    return`<div class="fr-item"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}</div></div><div class="fr-actions"><button class="fr-btn fr-accept" onclick="startDMWithFriend('${u.id_no}','${nm.replace(/'/g,"\\'")}','${u.branch}')">💬 Chat</button></div></div>`;
   }).join('');
 }
 function renderRequestsList(){
@@ -1599,42 +1568,10 @@ function renderFindList(q=''){
   const list=sameYearUsers.filter(u=>q===''||(u.name||u.id_no).toLowerCase().includes(q)||(u.branch||'').toLowerCase().includes(q));
   if(!list.length){box.innerHTML=`<div class="d-empty"><div class="dei">🔍</div><div>No students found</div></div>`;return;}
   box.innerHTML=list.map(u=>{const nm=u.name||u.id_no;const c=avc(u.id_no);
-    const isFr=myFriends.includes(u.id_no);const isPO=pendingOut.includes(u.id_no);const isPI=pendingIn.some(r=>r.from_id===u.id_no);const isBlocked=blockedUsers.includes(u.id_no);
-    let action=isBlocked?`<button class="fr-btn fr-unblock" onclick="unblockUser('${u.id_no}','${nm.replace(/'/g,"\\'")}')">↩ Unblock</button>`:
-      isFr?`<span class="fr-friends-tag">✓ Friends</span><button class="fr-btn fr-block" onclick="blockUser('${u.id_no}','${nm.replace(/'/g,"\\'")}')">🚫</button>`:
-      isPO?`<span class="fr-pending-tag">⏳ Sent</span>`:
-      isPI?`<button class="fr-btn fr-accept" onclick="acceptRequest(null,'${u.id_no}')">Accept</button>`:`<button class="fr-btn fr-add" onclick="sendRequest('${u.id_no}','${nm.replace(/'/g,"\\'")}')">+ Add</button>`;
-    return`<div class="fr-item" style="${isBlocked?'opacity:0.6;':''}"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}${isBlocked?' · <span class="fr-blocked-tag">Blocked</span>':''}</div></div><div class="fr-actions">${action}</div></div>`;
+    const isFr=myFriends.includes(u.id_no);const isPO=pendingOut.includes(u.id_no);const isPI=pendingIn.some(r=>r.from_id===u.id_no);
+    let action=isFr?`<span class="fr-friends-tag">✓ Friends</span>`:isPO?`<span class="fr-pending-tag">⏳ Sent</span>`:isPI?`<button class="fr-btn fr-accept" onclick="acceptRequest(null,'${u.id_no}')">Accept</button>`:`<button class="fr-btn fr-add" onclick="sendRequest('${u.id_no}','${nm.replace(/'/g,"\\'")}')">+ Add</button>`;
+    return`<div class="fr-item"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}</div></div><div class="fr-actions">${action}</div></div>`;
   }).join('');
-}
-async function blockUser(userId,userName){
-  if(!confirm(`Block ${userName}? They won't be able to send you messages or appear in your friends list.`))return;
-  try{
-    // Remove from friends if they are a friend
-    if(myFriends.includes(userId)){
-      await client.from('friend_requests').delete().or(`and(from_id.eq.${user.id_no},to_id.eq.${userId}),and(from_id.eq.${userId},to_id.eq.${user.id_no})`);
-    }
-    // Insert block record
-    await client.from('blocked_users').upsert([{blocker_id:user.id_no,blocked_id:userId}],{onConflict:'blocker_id,blocked_id'});
-    blockedUsers.push(userId);
-    myFriends=myFriends.filter(id=>id!==userId);
-    showToast(`${userName} has been blocked 🚫`,'info');
-    const q=document.getElementById('frSearchInput').value.toLowerCase();
-    if(curFrTab==='friends')renderFriendsList(q);
-    else if(curFrTab==='find')renderFindList(q);
-    else if(curFrTab==='blocked')renderBlockedList();
-  }catch(e){console.error('Block error:',e);showToast('Failed to block user. The blocked_users table may not exist yet.','error');}
-}
-async function unblockUser(userId,userName){
-  try{
-    await client.from('blocked_users').delete().eq('blocker_id',user.id_no).eq('blocked_id',userId);
-    blockedUsers=blockedUsers.filter(id=>id!==userId);
-    showToast(`${userName} has been unblocked ✅`,'success');
-    const q=document.getElementById('frSearchInput').value.toLowerCase();
-    if(curFrTab==='blocked')renderBlockedList();
-    else if(curFrTab==='friends')renderFriendsList(q);
-    else if(curFrTab==='find')renderFindList(q);
-  }catch(e){console.error('Unblock error:',e);showToast('Failed to unblock user','error');}
 }
 async function sendRequest(toId,toName){
   await client.from('friend_requests').insert([{from_id:user.id_no,from_name:user.name||user.id_no,to_id:toId,to_name:toName,status:'pending',year:user.year}]);
@@ -1806,52 +1743,23 @@ function showPopNotif(fromName,msg,color){
 function closePopNotif(){document.getElementById('popNotif').classList.remove('show');}
 function escapeHtml(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-
-/* ════ CONTEXT MENU + DELETE FOR EVERYONE ════ */
-let ctxMsgId=null,ctxMsgType=null;
-
-function showCtx(x,y,msgId,type){
-  ctxMsgId=msgId;ctxMsgType=type;
-  const menu=document.getElementById('ctxMenu');
-  menu.style.display='block';
-  const menuW=190,menuH=110;
-  const posX=Math.min(x,window.innerWidth-menuW-10);
-  const posY=Math.min(y,window.innerHeight-menuH-10);
-  menu.style.left=posX+'px';menu.style.top=posY+'px';
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'branch_chat',filter:`branch=eq.${branch}`},p=>{
+      if(p.new.deleted){
+        const wrap=document.querySelector(`.chat-msg-wrap[data-msg-id="${p.new.id}"]`);
+        if(wrap){const bubble=wrap.querySelector('.chat-bubble');if(bubble){bubble.textContent='🚫 This message was deleted';bubble.classList.add('deleted');}}
+      }
+    })
+    .subscribe();
+  typingSub=client.channel('typing_'+branch)
+    .on('broadcast',{event:'typing'},p=>{
+      if(p.payload.user_id===user.id_no)return;
+      document.getElementById('typingBar').textContent=`${p.payload.user_name||p.payload.user_id} is typing…`;
+      clearTimeout(window._typingClear);
+      window._typingClear=setTimeout(()=>{document.getElementById('typingBar').textContent='';},2000);
+    })
+    .subscribe();
 }
-function closeCtx(){
-  document.getElementById('ctxMenu').style.display='none';
-  ctxMsgId=null;ctxMsgType=null;
-}
-document.addEventListener('click',e=>{if(!e.target.closest('.msg-ctx-menu'))closeCtx();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCtx();});
-
-async function ctxDoDelete(){
-  if(!ctxMsgId)return;
-  const id=ctxMsgId,type=ctxMsgType;
-  closeCtx();
-  if(type==='dm'){
-    const{error}=await client.from('direct_messages')
-      .update({deleted:true,message:'[deleted]'})
-      .eq('id',id)
-      .eq('from_id',user.id_no);
-    if(error){showToast('Could not delete message','error');return;}
-    const wrap=document.querySelector(`.dm-msg-wrap[data-msg-id="${id}"]`);
-    if(wrap){const bubble=wrap.querySelector('.dm-bubble');if(bubble){bubble.textContent='🚫 This message was deleted';bubble.classList.add('deleted');}}
-    showToast('Message deleted for everyone 🗑️','info');
-  } else if(type==='chat'){
-    const{error}=await client.from('branch_chat')
-      .update({deleted:true,message:'[deleted]'})
-      .eq('id',id)
-      .eq('user_id',user.id_no);
-    if(error){showToast('Could not delete message','error');return;}
-    // Target both msg-wrap selectors (the working chat renderer uses msg-wrap)
-    const wrap=document.querySelector(`.msg-wrap[data-msg-id="${id}"]`)||document.querySelector(`.chat-msg-wrap[data-msg-id="${id}"]`);
-    if(wrap){const bubble=wrap.querySelector('.msg-bubble,.chat-bubble');if(bubble){bubble.textContent='🚫 This message was deleted';bubble.classList.add('deleted');}}
-    showToast('Message deleted for everyone 🗑️','info');
-  }
-}
-
 </script>
 </body>
 </html>
