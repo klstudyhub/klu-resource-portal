@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#03050a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+<title>KL Study Hub — Lost & Found</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#03050a;--s1:#070c16;
+  --card:rgba(255,255,255,0.024);--ch:rgba(255,255,255,0.044);
+  --border:rgba(255,255,255,0.058);
+  --p:#00f5b4;--p2:#00d4ff;--pd:rgba(0,245,180,0.07);--pg:rgba(0,245,180,0.14);
+  --gold:#ffd166;--goldd:rgba(255,209,102,0.09);
+  --rose:#ff6b9d;--red:#ff5b5b;--redd:rgba(255,91,91,0.09);
+  --blue:#5b9fff;--blued:rgba(91,159,255,0.09);
+  --purple:#b57bff;--purpled:rgba(181,123,255,0.09);
+  --orange:#ff9f43;
+  --tx:#e5edf8;--mu:rgba(229,237,248,0.38);--su:rgba(229,237,248,0.17);
+  --r:14px;--rs:10px;--rp:999px;
+  --fd:'Space Grotesk',sans-serif;--fh:'Orbitron',sans-serif;
+  --eo:cubic-bezier(0.16,1,0.3,1);
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fd);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-m{position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 5% 10%,rgba(255,209,102,0.04) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 95% 85%,rgba(0,245,180,0.035) 0%,transparent 55%);animation:bgD 32s ease-in-out infinite alternate;}
+@keyframes bgD{from{transform:scale(1);}to{transform:scale(1.06) rotate(1deg);}}
+.bg-g{position:absolute;inset:0;background-image:linear-gradient(rgba(255,209,102,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,209,102,0.012) 1px,transparent 1px);background-size:68px 68px;mask-image:radial-gradient(ellipse 70% 80% at 50% 40%,black 10%,transparent 100%);}
+nav{position:sticky;top:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(3,5,10,0.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--fh);font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;letter-spacing:-0.3px;color:var(--tx);text-decoration:none;}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--p);box-shadow:0 0 10px var(--p);animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.65);}}
+.nav-logo .acc{color:var(--p);}
+.nav-r{display:flex;align-items:center;gap:6px;}
+.nav-btn{padding:6px 13px;border-radius:8px;font-size:12.5px;font-weight:500;color:var(--mu);background:transparent;border:none;cursor:pointer;font-family:var(--fd);transition:color 0.18s,background 0.18s;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.nav-btn:hover{color:var(--tx);background:rgba(255,255,255,0.05);}
+main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:28px 22px 80px;}
+.a1{animation:fu 0.5s 0.04s var(--eo) both;}.a2{animation:fu 0.5s 0.09s var(--eo) both;}.a3{animation:fu 0.5s 0.14s var(--eo) both;}.a4{animation:fu 0.5s 0.19s var(--eo) both;}
+@keyframes fu{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+
+/* HERO */
+.hero{text-align:center;margin-bottom:30px;}
+.hero h1{font-family:var(--fh);font-size:28px;font-weight:900;margin-bottom:7px;}
+.hero h1 span{color:var(--gold);}
+.hero p{font-size:13px;color:var(--mu);}
+
+/* POST FORM */
+.post-form{background:linear-gradient(135deg,rgba(255,209,102,0.048),rgba(255,209,102,0.016));border:1px solid rgba(255,209,102,0.16);border-radius:18px;padding:22px 24px;margin-bottom:28px;position:relative;overflow:hidden;}
+.post-form::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.3;}
+.form-title{font-family:var(--fh);font-size:13.5px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.type-row{display:flex;gap:9px;margin-bottom:14px;}
+.type-btn{flex:1;padding:10px;border-radius:10px;font-family:var(--fd);font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--mu);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.type-btn.active-lost{background:rgba(255,91,91,0.12);border-color:rgba(255,91,91,0.28);color:var(--red);}
+.type-btn.active-found{background:rgba(0,245,180,0.1);border-color:rgba(0,245,180,0.28);color:var(--p);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:10.5px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--mu);}
+.fi,.fta{padding:10px 13px;background:rgba(0,0,0,0.28);border:1px solid var(--border);border-radius:var(--rs);color:var(--tx);font-family:var(--fd);font-size:13px;outline:none;transition:border-color 0.18s;width:100%;}
+.fi::placeholder,.fta::placeholder{color:var(--su);}
+.fi:focus,.fta:focus{border-color:rgba(255,209,102,0.35);box-shadow:0 0 0 3px rgba(255,209,102,0.07);}
+.fta{resize:vertical;min-height:72px;}
+.submit-btn{width:100%;padding:12px;border-radius:var(--rs);font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--gold),#e6a817);color:#03050a;transition:all 0.2s;margin-top:4px;}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(255,209,102,0.3);}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* FILTERS */
+.filter-bar{display:flex;align-items:center;gap:9px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-bar h3{font-family:var(--fh);font-size:13px;font-weight:700;flex:1;}
+.f-chip{padding:6px 14px;border-radius:var(--rp);font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--mu);cursor:pointer;transition:all 0.18s;}
+.f-chip:hover{color:var(--tx);}
+.f-chip.on-all{background:var(--pd);border-color:rgba(0,245,180,0.2);color:var(--p);}
+.f-chip.on-lost{background:var(--redd);border-color:rgba(255,91,91,0.2);color:var(--red);}
+.f-chip.on-found{background:rgba(0,245,180,0.09);border-color:rgba(0,245,180,0.2);color:var(--p);}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px;}
+.lf-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden;transition:transform 0.2s,border-color 0.2s;}
+.lf-card:hover{transform:translateY(-2px);}
+.lf-card.type-lost{border-color:rgba(255,91,91,0.2);}
+.lf-card.type-lost::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.lf-card.type-found{border-color:rgba(0,245,180,0.2);}
+.lf-card.type-found::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--p),transparent);}
+.lf-card.resolved{opacity:0.55;}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.type-badge{padding:3px 10px;border-radius:var(--rp);font-size:10.5px;font-weight:700;letter-spacing:0.3px;}
+.badge-lost{background:var(--redd);color:var(--red);}
+.badge-found{background:rgba(0,245,180,0.1);color:var(--p);}
+.badge-resolved{background:rgba(255,255,255,0.07);color:var(--mu);}
+.card-item{font-family:var(--fh);font-size:13.5px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-desc{font-size:12.5px;color:rgba(229,237,248,0.72);line-height:1.6;margin-bottom:10px;}
+.card-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;}
+.meta-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mu);background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rp);padding:3px 9px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-user{font-size:11px;color:var(--su);}
+.card-acts{display:flex;gap:6px;}
+.act-btn{padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;font-family:var(--fd);}
+.btn-resolve{background:rgba(0,245,180,0.1);color:var(--p);border:1px solid rgba(0,245,180,0.2);}
+.btn-resolve:hover{background:rgba(0,245,180,0.18);}
+.btn-delete{background:var(--redd);color:var(--red);border:1px solid rgba(255,91,91,0.2);}
+.btn-delete:hover{background:rgba(255,91,91,0.18);}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 18px;color:var(--mu);font-size:13px;}
+.empty .ei{font-size:36px;margin-bottom:11px;}
+
+/* SKELETON */
+.skel{background:linear-gradient(90deg,rgba(255,255,255,0.038) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.038) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r);}
+@keyframes shimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+
+/* TOAST */
+.tw{position:fixed;top:80px;right:20px;display:flex;flex-direction:column;gap:9px;z-index:9999;}
+.tn{display:flex;align-items:center;gap:11px;padding:11px 16px;border-radius:var(--r);background:rgba(7,12,22,0.97);backdrop-filter:blur(20px);border:1px solid var(--border);border-left:3px solid;box-shadow:0 13px 42px rgba(0,0,0,0.5);min-width:235px;animation:tIn 0.4s var(--eo);position:relative;overflow:hidden;}
+.tn.success{border-left-color:var(--p);}.tn.error{border-left-color:var(--rose);}.tn.info{border-left-color:var(--blue);}
+.tn.hiding{animation:tOut 0.28s ease forwards;}
+@keyframes tIn{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@keyframes tOut{to{transform:translateX(110%);opacity:0;}}
+.ti{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.tn.success .ti{background:rgba(0,245,180,0.12);color:var(--p);}.tn.error .ti{background:rgba(255,107,157,0.12);color:var(--rose);}.tn.info .ti{background:var(--blued);color:var(--blue);}
+.tm{font-size:12.5px;font-weight:500;line-height:1.4;flex:1;}
+.tb{position:absolute;bottom:0;left:0;height:2px;width:100%;transform-origin:left;animation:bshrink 3s linear forwards;}
+.tn.success .tb{background:var(--p);}.tn.error .tb{background:var(--rose);}.tn.info .tb{background:var(--blue);}
+@keyframes bshrink{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+
+footer{text-align:center;padding:18px;border-top:1px solid var(--border);font-size:12.5px;color:var(--mu);}
+@media(max-width:640px){nav{padding:0 14px;}main{padding:18px 14px 60px;}.form-grid{grid-template-columns:1fr;}.hero h1{font-size:22px;}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-m"></div><div class="bg-g"></div></div>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo"><div class="nav-dot"></div>KL <span class="acc">&nbsp;STUDY HUB</span></a>
+  <div class="nav-r">
+    <a href="notes.html" class="nav-btn"><i class="fa fa-note-sticky"></i> Quick Notes</a>
+    <a href="dashboard.html" class="nav-btn"><i class="fa fa-home"></i> Dashboard</a>
+  </div>
+</nav>
+
+<main>
+  <!-- HERO -->
+  <div class="hero a1">
+    <h1>🔍 Lost & <span>Found</span></h1>
+    <p>Lost something on campus? Found something? Post it here and help each other out!</p>
+  </div>
+
+  <!-- POST FORM -->
+  <div class="post-form a2">
+    <div class="form-title">📋 Post an Item</div>
+    <div class="type-row">
+      <button class="type-btn active-lost" id="btnLost" onclick="setType('lost')">❌ I Lost Something</button>
+      <button class="type-btn" id="btnFound" onclick="setType('found')">✅ I Found Something</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Item Name *</label><input class="fi" id="lfItem" placeholder="e.g. Blue Notebook, Airpods, ID Card"></div>
+      <div class="fg"><label>Location *</label><input class="fi" id="lfLocation" placeholder="e.g. Block-C Canteen, Library 2nd Floor"></div>
+    </div>
+    <div class="fg" style="margin-bottom:11px;"><label>Description</label><textarea class="fta" id="lfDesc" placeholder="Any extra details — color, brand, distinguishing marks…"></textarea></div>
+    <div class="fg" style="margin-bottom:14px;"><label>Your Contact (ID / Phone)</label><input class="fi" id="lfContact" placeholder="e.g. 2200031234 or 9876543210"></div>
+    <button class="submit-btn" id="submitBtn" onclick="submitPost()">📢 Post Item</button>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar a3">
+    <h3>📌 All Posts <span id="totalCount" style="font-family:var(--fd);font-size:12px;color:var(--mu);font-weight:500;"></span></h3>
+    <div class="f-chip on-all" id="fAll" onclick="setFilter('all',this)">All</div>
+    <div class="f-chip" id="fLost" onclick="setFilter('lost',this)">❌ Lost</div>
+    <div class="f-chip" id="fFound" onclick="setFilter('found',this)">✅ Found</div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards-grid a4" id="cardsGrid">
+    <div class="skel" style="height:170px;"></div>
+    <div class="skel" style="height:170px;"></div>
+    <div class="skel" style="height:170px;"></div>
+  </div>
+</main>
+
+<footer>KL Study Hub © 2026 · Built by students, for students</footer>
+<div class="tw" id="toastWrap"></div>
+
+<script>
+const{createClient}=supabase;
+const client=createClient("https://jkgkswsiunpzwnurqvjq.supabase.co","sb_publishable_khKSlOrpjH8f44Z5Dls3mw_QfpSthr8");
+const user=JSON.parse(localStorage.getItem("user"));
+if(!user)window.location="index.html";
+
+const isAdmin=user.role==='admin'||user.role==='ultra_admin'||user.role==='coadmin';
+let postType='lost', currentFilter='all', allPosts=[];
+
+function setType(t){
+  postType=t;
+  document.getElementById('btnLost').className='type-btn'+(t==='lost'?' active-lost':'');
+  document.getElementById('btnFound').className='type-btn'+(t==='found'?' active-found':'');
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.f-chip').forEach(c=>{c.className='f-chip';});
+  el.className='f-chip on-'+f;
+  renderCards();
+}
+
+async function load(){
+  const{data,error}=await client.from('lost_found').select('*').order('created_at',{ascending:false});
+  if(error){showToast('Failed to load posts','error');return;}
+  allPosts=data||[];
+  renderCards();
+}
+
+function renderCards(){
+  const grid=document.getElementById('cardsGrid');
+  let posts=allPosts;
+  if(currentFilter!=='all')posts=posts.filter(p=>p.type===currentFilter);
+  document.getElementById('totalCount').textContent=`(${posts.length})`;
+  if(!posts.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${currentFilter==='lost'?'😢':currentFilter==='found'?'🎉':'📭'}</div>No ${currentFilter==='all'?'':currentFilter} posts yet. Be the first!</div>`;
+    return;
+  }
+  grid.innerHTML=posts.map(p=>{
+    const isOwner=p.user_id===user.id_no;
+    const isResolved=p.status==='resolved';
+    const dt=new Date(p.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const canDelete=isOwner||isAdmin;
+    const canResolve=isOwner&&!isResolved;
+    return`<div class="lf-card type-${p.type}${isResolved?' resolved':''}">
+      <div class="card-top">
+        <span class="type-badge ${isResolved?'badge-resolved':p.type==='lost'?'badge-lost':'badge-found'}">${isResolved?'✅ Resolved':p.type==='lost'?'❌ Lost':'✅ Found'}</span>
+        <div class="card-item" title="${p.item_name}">${p.item_name}</div>
+      </div>
+      ${p.description?`<div class="card-desc">${p.description}</div>`:''}
+      <div class="card-meta">
+        <span class="meta-pill"><i class="fa fa-location-dot"></i>${p.location}</span>
+        ${p.contact?`<span class="meta-pill"><i class="fa fa-phone"></i>${p.contact}</span>`:''}
+        <span class="meta-pill"><i class="fa fa-calendar"></i>${dt}</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-user">Posted by ${p.user_name||p.user_id}</span>
+        <div class="card-acts">
+          ${canResolve?`<button class="act-btn btn-resolve" onclick="resolvePost('${p.id}')">✅ Resolved</button>`:''}
+          ${canDelete?`<button class="act-btn btn-delete" onclick="deletePost('${p.id}')">🗑️</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitPost(){
+  const item=document.getElementById('lfItem').value.trim();
+  const location=document.getElementById('lfLocation').value.trim();
+  const desc=document.getElementById('lfDesc').value.trim();
+  const contact=document.getElementById('lfContact').value.trim();
+  if(!item||!location){showToast('Please fill in Item Name and Location','error');return;}
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Posting…';
+  const{error}=await client.from('lost_found').insert([{
+    type:postType,item_name:item,location,description:desc,contact,
+    user_id:user.id_no,user_name:user.name||user.id_no,status:'active'
+  }]);
+  btn.disabled=false;btn.textContent='📢 Post Item';
+  if(error){showToast('Failed to post: '+error.message,'error');return;}
+  document.getElementById('lfItem').value='';
+  document.getElementById('lfLocation').value='';
+  document.getElementById('lfDesc').value='';
+  document.getElementById('lfContact').value='';
+  showToast('Posted successfully! 🎉','success');
+  load();
+}
+
+async function resolvePost(id){
+  const{error}=await client.from('lost_found').update({status:'resolved'}).eq('id',id);
+  if(error){showToast('Failed to update','error');return;}
+  showToast('Marked as resolved ✅','success');load();
+}
+
+async function deletePost(id){
+  if(!confirm('Delete this post?'))return;
+  const{error}=await client.from('lost_found').delete().eq('id',id);
+  if(error){showToast('Failed to delete','error');return;}
+  showToast('Post deleted 🗑️','info');load();
+}
+
+function showToast(msg,type='success'){
+  const icons={success:'✓',error:'✕',info:'i'};
+  const t=document.createElement('div');t.className=`tn ${type}`;
+  t.innerHTML=`<div class="ti">${icons[type]||'i'}</div><div class="tm">${msg}</div><div class="tb"></div>`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(()=>{t.classList.add('hiding');t.addEventListener('animationend',()=>t.remove());},3000);
+}
+
+load();
+</script>
+</body>
+</html>
