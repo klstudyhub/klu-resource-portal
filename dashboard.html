@@ -1466,7 +1466,7 @@ async function sendMessage(){
   const{error}=await client.from('branch_chat').insert([{
     room_key:roomKey,branch:activeChatBranch,year:yr,
     user_id:user.id_no,user_name:user.name||user.id_no,
-    message:msg,deleted:false
+    message:msg
   }]);
   if(error){console.error('branch_chat error:',JSON.stringify(error));showToast('Failed to send: '+(error.message||error.code||'check RLS policies'),'error');}
 }
@@ -1568,7 +1568,7 @@ function renderFriendsList(q=''){
   const list=sameYearUsers.filter(u=>myFriends.includes(u.id_no)&&!blockedUsers.includes(u.id_no)&&(q===''||(u.name||u.id_no).toLowerCase().includes(q)));
   if(!list.length){box.innerHTML=`<div class="d-empty"><div class="dei">👥</div><div>No friends yet.<br><span style="font-size:12px;">Go to "Find Students" to add friends!</span></div></div>`;return;}
   box.innerHTML=list.map(u=>{const nm=u.name||u.id_no;const c=avc(u.id_no);
-    return`<div class="fr-item"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}</div></div><div class="fr-actions"><button class="fr-btn fr-accept" onclick="startDMWithFriend('${u.id_no}','${nm.replace(/'/g,"\\'")}\'','${u.branch}')">💬 Chat</button><button class="fr-btn fr-block" onclick="blockUser('${u.id_no}','${nm.replace(/'/g,"\\'")}')">🚫 Block</button></div></div>`;
+    return`<div class="fr-item"><div class="fr-av" style="background:${c};">${nm.charAt(0).toUpperCase()}</div><div class="fr-info"><div class="fr-name">${nm}</div><div class="fr-meta">${u.branch} · ${YNS[u.year]||''}</div></div><div class="fr-actions"><button class="fr-btn fr-accept" onclick="startDMWithFriend('${u.id_no}','${nm}','${u.branch}')">💬 Chat</button><button class="fr-btn fr-block" onclick="blockUser('${u.id_no}','${nm}')">🚫 Block</button></div></div>`;
   }).join('');
 }
 function renderBlockedList(){
@@ -1869,7 +1869,7 @@ async function ctxDoDelete(){
   if(type==='dm'){
     // Update in DB — mark deleted, clear message text
     const{error}=await client.from('direct_messages')
-      .update({deleted:true,message:'[deleted]'})
+      .update({message:'This message was deleted'})
       .eq('id',id)
       .eq('from_id',user.id_no); // can only delete own
     if(error){showToast('Could not delete message','error');return;}
@@ -1879,7 +1879,7 @@ async function ctxDoDelete(){
     showToast('Message deleted for everyone 🗑️','info');
   } else if(type==='chat'){
     const{error}=await client.from('branch_chat')
-      .update({deleted:true,message:'[deleted]'})
+      .update({message:'This message was deleted'})
       .eq('id',id)
       .eq('user_id',user.id_no);
     if(error){showToast('Could not delete message','error');return;}
