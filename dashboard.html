@@ -989,10 +989,10 @@ function convertDriveLink(url){
   if(!url)return url;
   // Match: /file/d/FILE_ID/ or /file/d/FILE_ID (with any query)
   const m=url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if(m)return'https://drive.google.com/file/d/'+m[1]+'/preview';
+  if(m)return'https://drive.google.com/uc?export=download&id='+m[1];
   // Match: open?id=FILE_ID or uc?id=FILE_ID or uc?export=...&id=FILE_ID
   const m2=url.match(/drive\.google\.com\/(?:open|uc)\?.*?id=([a-zA-Z0-9_-]+)/);
-  if(m2)return'https://drive.google.com/file/d/'+m2[1]+'/preview';
+  if(m2)return'https://drive.google.com/uc?export=download&id='+m2[1];
   return url;
 }
 function isPdf(l){return l&&l.toLowerCase().includes(".pdf");}
