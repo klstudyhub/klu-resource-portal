@@ -1459,17 +1459,18 @@ async function sendMessage(){
   const inp=document.getElementById('chatInput');
   const msg=inp.value.trim();if(!msg)return;
   try{
-    const{data:s}=await client.from('chat_settings').select('is_active').eq('branch',activeChatBranch).single();
+    const{data:s}=await client.from('chat_settings').select('is_active').eq('branch',activeChatBranch).maybeSingle();
     if(s&&!s.is_active){showToast('Chat is disabled for this branch','error');return;}
-  }catch(e){}
-  inp.value='';inp.style.height='auto';isTypingChat=false;
+  }catch(e){console.warn('chat_settings check:',e);}
+  inp.value=';inp.style.height='auto';isTypingChat=false;
   const roomKey=chatRoomKey(activeChatBranch);
+  const yr=user.year?String(user.year):null;
   const{error}=await client.from('branch_chat').insert([{
-    room_key:roomKey,branch:activeChatBranch,year:user.year,
+    room_key:roomKey,branch:activeChatBranch,year:yr,
     user_id:user.id_no,user_name:user.name||user.id_no,
     message:msg,deleted:false
   }]);
-  if(error){showToast('Failed to send','error');console.error(error);}
+  if(error){console.error('branch_chat error:',JSON.stringify(error));showToast('Send failed: '+(error.message||error.code||'RLS policy blocked insert'),'error');}
 }
 
 async function loadResources(){return load();}
