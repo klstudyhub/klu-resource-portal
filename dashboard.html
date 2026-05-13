@@ -985,6 +985,16 @@ async function load(){
   updateStats();renderAnn(a.data||[]);renderPinned();renderBranches();renderFeed();renderFavs();renderRecent();
 }
 
+function convertDriveLink(url){
+  if(!url)return url;
+  // Match: /file/d/FILE_ID/ or /file/d/FILE_ID (with any query)
+  const m=url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m)return'https://drive.google.com/file/d/'+m[1]+'/preview';
+  // Match: open?id=FILE_ID or uc?id=FILE_ID or uc?export=...&id=FILE_ID
+  const m2=url.match(/drive\.google\.com\/(?:open|uc)\?.*?id=([a-zA-Z0-9_-]+)/);
+  if(m2)return'https://drive.google.com/file/d/'+m2[1]+'/preview';
+  return url;
+}
 function isPdf(l){return l&&l.toLowerCase().includes(".pdf");}
 function updateStats(){document.getElementById("stTotal").textContent=allData.length;document.getElementById("stFav").textContent=favs.length;document.getElementById("stRecent").textContent=recents.length;}
 
@@ -1028,7 +1038,7 @@ function renderPinned(){
         <div class="pinned-title" title="${r.title}">${r.title}</div>
         <div class="pinned-sub">${r.subject||''} ${r.category?'· '+r.category:''}</div>
         <div class="pinned-acts">
-          ${r.link?`<a href="${r.link}" target="_blank" class="modal-btn modal-submit" style="font-size:11px;padding:5px 11px;text-decoration:none;">Open</a>`:''}
+          ${r.link?`<a href="${convertDriveLink(r.link)}" target="_blank" class="modal-btn modal-submit" style="font-size:11px;padding:5px 11px;text-decoration:none;">Open</a>`:''}
         </div>
       </div>
     </div>`).join("");
@@ -1104,7 +1114,7 @@ function resItemHtml(r){
       <div class="star-row">${[1,2,3,4,5].map(s=>`<span class="star ${myRat>=s?'lit':''}" onclick="rateRes(${r.id},${s})" title="${s} star">${myRat>=s?'★':'☆'}</span>`).join('')}<span class="rating-cnt">${avgRat}</span></div>
     </div>
     <div class="res-acts">
-      ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
+      ${r.link?`<a href="${convertDriveLink(r.link)}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
       <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="${isFav?'Remove from':'Add to'} favourites"><i class="fa fa-star"></i></button>
       <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\\'")}')"><i class="fa fa-comment"></i></button>
       <div class="share-wrap">
@@ -1165,7 +1175,7 @@ function renderFeed(){
           ${r.category?`<span class="feed-cat">${r.category}</span>`:''}
         </div>
         <div class="feed-acts">
-          ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
+          ${r.link?`<a href="${convertDriveLink(r.link)}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
           <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="Favourite"><i class="fa fa-star"></i></button>
           <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\'")}')"><i class="fa fa-comment"></i></button>
         </div>
@@ -1187,7 +1197,7 @@ function renderFeed(){
           </div>
         </div>
         <div class="feed-acts">
-          ${r.link?`<a href="${r.link}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
+          ${r.link?`<a href="${convertDriveLink(r.link)}" target="_blank" onclick="trackOpen('${r.id}','${(r.title||'').replace(/'/g,"\'")}')"><button class="icon-btn" title="Open"><i class="fa fa-external-link-alt"></i></button></a>`:''}
           <button class="icon-btn ${isFav?'fav-on':''}" onclick="toggleFav('${r.id}')" title="Favourite"><i class="fa fa-star"></i></button>
           <button class="icon-btn cmt-btn" onclick="openComments(${r.id},'${(r.title||'').replace(/'/g,"\'")}')"><i class="fa fa-comment"></i></button>
         </div>
@@ -1225,7 +1235,7 @@ function toggleSubject(id){
   const sg=document.getElementById("sg_"+id);if(!sg)return;sg.classList.toggle("open");
 }
 function openLink(link,id,title){
-  if(link){window.open(link,"_blank");trackOpen(id,title);}
+  if(link){window.open(convertDriveLink(link),"_blank");trackOpen(id,title);}
 }
 function trackOpen(id,title){
   const idx=recents.findIndex(r=>String(r)===String(id));
